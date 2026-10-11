@@ -58,6 +58,17 @@ EXTRA = [
     ("P63", "Modify sanctioned design allowed?", "24"),
     ("P64", "Plan vs rules conflict which wins?", "103"),
     ("P65", "Lift mandatory above what height?", "83"),
+    # source-grounded round 4 (Rules 42, 58, 67-71, 78, 81)
+    ("N66", "What is the minimum kitchen size?", "69"),
+    ("N67", "How many trees for a 500 sqm plot?", "67"),
+    ("N68", "Balcony projection limit?", "58"),
+    ("N69", "Road and plot needed for a 20m tall building?", "42"),
+    ("N70", "What is the timeline from application to occupancy?", "23"),
+    ("N71", "Which route for my 250 sqm plot - instant or standard?", "12"),
+    ("N72", "Front compound wall height?", "78"),
+    ("N73", "Bathroom minimum size?", "69"),
+    ("N74", "Is rainwater harvesting compulsory?", "81"),
+    ("N75", "रसोई का न्यूनतम आकार?", "69"),
 ]
 
 def main():

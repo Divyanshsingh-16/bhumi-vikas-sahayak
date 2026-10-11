@@ -7,4 +7,5 @@ __pycache__/
 eval/results.csv
 eval/results_v2.csv
 eval/counter_log.csv
+eval/cases.csv
 pdf_pages/

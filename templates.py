@@ -79,6 +79,34 @@ TEMPLATES = {
         "en": "Side open space: detached 3 m both sides (if frontage <12 m and height ≤7 m: 3 m + 1.5 m); semi-detached 3 m one side (2.5 m if frontage ≤10 m, height ≤10 m); row-type nil (Rule 56(3), PDF p.78).",
         "hi": "बगल की खुली जगह: पृथक भवन दोनों ओर 3 मी (अग्रभाग <12 मी व ऊंचाई ≤7 मी: 3 मी + 1.5 मी); अर्ध-पृथक एक ओर 3 मी; पंक्ति भवन शून्य (नियम 56(3), PDF पृ.78)।",
     },
+    "room": {
+        "en": "Room minimums: single habitable room ≥9.5 sqm (width ≥2.4m); two rooms ≥9.5 + ≥7.5 sqm; kitchen ≥5.0 sqm (≥1.8m wide), with store ≥4.5, with dining ≥7.5; bath ≥1.5, WC ≥1.1, combined ≥2.4 sqm; heights: rooms/kitchen ≥2.6m, bath/WC ≥2.2m (Rules 69-71, PDF p.87-89).",
+        "hi": "कमरा न्यूनतम: एकल रहने-योग्य ≥9.5 वर्ग मी (चौड़ाई ≥2.4मी); दो कमरे ≥9.5 + ≥7.5; रसोई ≥5.0 (≥1.8मी), स्टोर सहित ≥4.5, भोजन सहित ≥7.5; स्नान ≥1.5, शौच ≥1.1, संयुक्त ≥2.4; ऊंचाई: कमरे/रसोई ≥2.6मी, स्नान/शौच ≥2.2मी (नियम 69-71, PDF पृ.87-89)।",
+    },
+    "plantation": {
+        "en": "Green rules: plots ≥100 sqm need 1 tree per 100 sqm — occupancy certificate only after planting (Rule 67, PDF p.87). Plots >140 sqm need rain/roof-water harvesting (Rule 81(4), PDF p.93).",
+        "hi": "हरित नियम: ≥100 वर्ग मीटर प्लॉट पर प्रति 100 वर्ग मीटर 1 पेड़ — पौधारोपण के बाद ही अधिभोग प्रमाणपत्र (नियम 67, PDF पृ.87)। >140 वर्ग मीटर पर वर्षा/छत-जल संचयन अनिवार्य (नियम 81(4), PDF पृ.93)।",
+    },
+    "projection": {
+        "en": "Projections into open space: balcony ≤1.2m (1.5m clear of boundary), cornice/sunshade ≤0.75m; private garage ≤25 sqm; front wall ≤1.5m, side/rear ≤2m (Rules 58, 78; PDF p.81, 92).",
+        "hi": "खुली जगह में निकास: बालकनी ≤1.2मी (सीमा से 1.5मी अंतर), कंगनी/छज्जा ≤0.75मी; निजी गैराज ≤25 वर्ग मी; सामने दीवार ≤1.5मी, बगल/पीछे ≤2मी (नियम 58, 78; PDF पृ.81, 92)।",
+    },
+    "highrise_band": {
+        "en": "Above 12.5m, bands apply (Rule 42): up to 18m needs 12m road + 1000 sqm plot (FAR 1.50); up to 24m needs 18m road + 1500 sqm (FAR 1.75); up to 30m needs 24m road + 2000 sqm (FAR 2.00). Above that = high-rise table + site committee + fire NOC.",
+        "hi": "12.5मी से ऊपर श्रेणी लागू (नियम 42): 18मी तक 12मी सड़क + 1000 वर्ग मी (FAR 1.50); 24मी तक 18मी सड़क + 1500 (FAR 1.75); 30मी तक 24मी सड़क + 2000 (FAR 2.00)। इससे ऊपर = उच्च-भवन तालिका + स्थल समिति + अग्नि NOC।",
+    },
+    "deadline": {
+        "en": "Key timelines: inspection 7 days after plinth notice, final check 21 days after completion notice (Rule 33); occupancy decision 30 days else deemed (Rule 31); permission valid 3 years + 2x1yr renewal (Rule 23).",
+        "hi": "मुख्य समय-सीमा: प्लिंथ सूचना पर 7 दिन में निरीक्षण, पूर्णता पर 21 दिन में अंतिम जांच (नियम 33); अधिभोग निर्णय 30 दिन अन्यथा मानित (नियम 31); अनुमति 3 साल + 2x1 साल नवीनीकरण (नियम 23)।",
+    },
+    "rwh": {
+        "en": "Rain/roof-water harvesting is compulsory on plots above 140 sqm, per options in Appendices H-1/H-2/H-3 (Rule 81(4), PDF p.93).",
+        "hi": "140 वर्ग मीटर से बड़े प्लॉट पर वर्षा/छत-जल संचयन अनिवार्य, परिशिष्ट H-1/H-2/H-3 के विकल्पों से (नियम 81(4), PDF पृ.93)।",
+    },
+    "route": {
+        "en": "Which route? Plot ≤186 sqm in approved layout → instant approval (12-A); ≤300 sqm → standard plan (21(4)) or authorised Architect (6(3)); ≤500 sqm → check competence table (26(9)); bigger → full Authority process. Plots ≤500 sqm: confirm Aug-2026 position first.",
+        "hi": "कौन-सा रास्ता? ≤186 वर्ग मीटर → तुरंत स्वीकृति (12-A); ≤300 → मानक योजना (21(4)) या अधिकृत आर्किटेक्ट (6(3)); ≤500 → सक्षमता तालिका (26(9)); बड़ा → पूर्ण प्रक्रिया। ≤500 पर अगस्त-2026 स्थिति पहले जांचें।",
+    },
     "plot300": {
         "en": "Verdict: under the March-2025 rules, a 300 sq m plot in an approved layout could use an authorised Architect/Structural Engineer (Rule 6(3)) or standard plans (Rule 21(4)) — BUT the 28-08-2026 amendment to Rule 2(5)(c) changed plots up to 500 sq m. Do NOT decide on old rules alone; confirm the August-2026 position with the Authority.",
         "hi": "निर्णय: मार्च-2025 नियमों में 300 वर्ग मीटर प्लॉट हेतु अधिकृत आर्किटेक्ट (नियम 6(3)) या मानक योजना (नियम 21(4)) का रास्ता था — पर 28-08-2026 संशोधन (नियम 2(5)(c), 500 वर्ग मीटर तक) के बाद पुराने नियमों पर निर्णय न लें; प्राधिकारी से अगस्त-2026 स्थिति जांचें।",
@@ -141,6 +169,20 @@ CITIZEN = {
                   "hi": "नागरिक से कहें: E-4 अनुमति से पहले रहना शुरू न करें।"},
     "plot300": {"en": "Tell the citizen: rules changed in August 2026 — the counter will confirm the latest position.",
                 "hi": "नागरिक से कहें: अगस्त 2026 में नियम बदले — काउंटर नवीनतम स्थिति बताएगा।"},
+    "room": {"en": "Tell the citizen: small rooms get rejected — check sizes before finalising the plan.",
+             "hi": "नागरिक से कहें: छोटे कमरे अस्वीकृत होंगे — योजना पक्की करने से पहले आकार जांचें।"},
+    "plantation": {"en": "Tell the citizen: plant trees early, or the occupancy certificate will wait.",
+                   "hi": "नागरिक से कहें: पेड़ पहले लगाएं, नहीं तो अधिभोग प्रमाणपत्र रुकेगा।"},
+    "projection": {"en": "Tell the citizen: keep balcony and shades within these limits.",
+                   "hi": "नागरिक से कहें: बालकनी व छज्जे इन्हीं सीमा में रखें।"},
+    "highrise_band": {"en": "Tell the citizen: taller buildings need bigger roads and plots.",
+                      "hi": "नागरिक से कहें: ऊंची इमारत हेतु बड़ी सड़क व बड़ा प्लॉट चाहिए।"},
+    "deadline": {"en": "Tell the citizen: note every date — delays can auto-decide the case.",
+                 "hi": "नागरिक से कहें: हर तारीख नोट करें — देरी स्वतः निर्णय करा सकती है।"},
+    "rwh": {"en": "Tell the citizen: harvesting is checked at sanction — arrange it in the plan.",
+            "hi": "नागरिक से कहें: संचयन स्वीकृति पर जांचा जाता है — योजना में रखें।"},
+    "route": {"en": "Tell the citizen: your plot size decides the fastest legal route.",
+              "hi": "नागरिक से कहें: आपके प्लॉट का आकार सबसे तेज़ वैध रास्ता तय करता है।"},
 }
 
 # Follow-up chips per kind: (button label, query to ask).
@@ -160,6 +202,15 @@ FOLLOWUPS = {
     "plan_change": [("Documents?", "What documents go with an application for building permission?")],
     "plot300": [("Standard plan?", "Can I use a standard plan?"),
                 ("Instant approval?", "Can I get instant approval?")],
+    "room": [("Kitchen size?", "What is the minimum kitchen size?"),
+             ("Bath/WC size?", "What is the minimum bathroom size?")],
+    "projection": [("Electric distance?", "How far must my balcony stay from an electric line?")],
+    "highrise_band": [("Lift rule?", "Is a lift needed for a 13 m tall building?"),
+                      ("High-rise fee?", "What is the fee for a high-rise residential building?")],
+    "deadline": [("Validity?", "How long does building permission stay valid?")],
+    "route": [("Instant approval?", "Can I get instant approval?"),
+              ("Standard plan?", "Can I use a standard plan?")],
+    "plantation": [("Occupancy?", "When is occupancy permission issued?")],
 }
 
 

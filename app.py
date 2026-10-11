@@ -167,6 +167,15 @@ with tab_case:
         rows, total = fee_breakdown(built, use=("commercial" if use.startswith("shop/") else use),
                                     highrise=highrise)
         st.success(f"Front: {f} m (R56) · Rear: {r if r else 'Nil'} m (R56) · Total fee: Rs {total} (R21)")
+        from calculators import plantation_needed, rwh_needed
+        trees, rwh = plantation_needed(area), rwh_needed(area)
+        green = []
+        if trees:
+            green.append(f"🌳 Plant {trees} tree(s) before occupancy (Rule 67)")
+        if rwh:
+            green.append("🌧️ Rain/roof-water harvesting required (Rule 81(4))")
+        for g in green:
+            st.info(g)
         with st.expander("💰 Fee breakdown (Rule 21)" if UL == "en" else "💰 शुल्क विवरण (नियम 21)"):
             for label, rs in rows:
                 st.write(f"• {label}: **Rs {rs}**")
@@ -177,8 +186,31 @@ with tab_case:
                 f"Plot {area} sqm -> rear {r if r else 'Nil'} m (Rule 56 p.78)\n"
                 f"Built-up {built} sqm ({use}{' high-rise' if highrise else ''}) -> fee Rs {total} (Rule 21)\n"
                 + "\n".join(f"  {label}: Rs {rs}" for label, rs in rows) + "\n"
+                + "\n".join(f"  {g}" for g in green) + "\n"
                 f"Source: {VERSION_STRING}. Clerk decides; not legal advice.")
         st.download_button("🧾 Download case slip", slip, file_name="case_slip.txt")
+        cname = st.text_input("Save this case as (name)", key="casename")
+        if st.button("💾 Save case", key="savecase") and cname:
+            import csv as _csv
+            cp = Path(__file__).parent / "eval" / "cases.csv"
+            new = not cp.exists()
+            with open(cp, "a", newline="", encoding="utf-8") as cf:
+                w = _csv.writer(cf)
+                if new:
+                    w.writerow(["name", "time", "road", "area", "built", "use", "highrise",
+                                "front", "rear", "fee"])
+                w.writerow([cname, datetime.now().isoformat(timespec="seconds"), road, area,
+                            built, use, highrise, f, r if r else "Nil", total])
+            st.success(f"Saved '{cname}'")
+    with st.expander("📂 Saved cases" if UL == "en" else "📂 सहेजे केस"):
+        import csv as _csv2
+        try:
+            saved = list(_csv2.DictReader(open(Path(__file__).parent / "eval" / "cases.csv")))
+            for s in saved[-10:]:
+                st.write(f"**{s['name']}** — road {s['road']}m, plot {s['area']}sqm, "
+                         f"front {s['front']}m, rear {s['rear']}m, fee Rs {s['fee']}")
+        except FileNotFoundError:
+            st.caption("No saved cases yet.")
 
 with tab_forms:
     st.subheader("28-08-2026 Amendment — Rule 2(5)(c), plots ≤500 sq m")
@@ -210,6 +242,16 @@ with tab_forms:
                 st.checkbox(d, key=f"doc_{key}_{d[:20]}")
         else:
             st.caption("Ask in chat for guidance.")
+    st.divider()
+    st.subheader("📅 Deadline calculator" if UL == "en" else "📅 समय-सीमा गणक")
+    from dates import permission_timeline, occupancy_deadline
+    import datetime as _dt
+    applied = st.date_input("Application date", value=_dt.date(2026, 1, 10), key="appdate")
+    if st.button("Show dates", key="dates"):
+        tl = permission_timeline(applied)
+        st.write(f"Valid until: **{tl['valid_until']}** (3 yrs) · Renewals: **{tl['renewal_1_until']}**, **{tl['renewal_2_until']}** (Rule 23)")
+        st.write(f"Occupancy decision by: **{occupancy_deadline(applied)}** (30 days, Rule 31)")
+        st.caption(tl["note"])
 
 with tab_eval:
     st.subheader("How often is it right?")
@@ -231,6 +273,19 @@ with tab_eval:
             st.caption("No counter log yet — it builds as the clerk asks.")
         with st.expander("Per-question scores"):
             st.dataframe(rows, height=300)
+        with st.expander("📰 Daily digest" if UL == "en" else "📰 दैनिक सार"):
+            try:
+                log = list(_csv.DictReader(open(LOG_PATH)))
+                from collections import Counter as _C
+                counts = _C(r["rule"] for r in log if r["rule"])
+                nf = sum(1 for r in log if not r["rule"])
+                dg = (f"BHUMI SAHAYAK — daily digest {datetime.now():%d-%m-%Y}\n"
+                      f"Queries: {len(log)} | Not-found: {nf} | Votes: {st.session_state.get('votes', {})}\n"
+                      f"Top rules: {dict(counts.most_common(5))}\nClerk decides; not legal advice.")
+                st.text(dg)
+                st.download_button("⬇️ Download digest", dg, file_name="digest.txt")
+            except FileNotFoundError:
+                st.caption("No counter log yet.")
     except FileNotFoundError:
         st.caption("Run `python3 eval/run_v2.py` to generate scores.")
 
@@ -267,6 +322,19 @@ with tab_chat:
                 st.session_state.history.append((dq, pipeline(dq)))
         st.rerun()
 
+    with st.expander("⚡ Instant answers (no waiting)" if UL == "en" else "⚡ तुरंत उत्तर"):
+        from faq import FAQ
+        fq_cols = st.columns(2)
+        for i, (keys, (rule, pages, a_en, a_hi)) in enumerate(FAQ):
+            ans = a_en if UL == "en" else a_hi
+            if fq_cols[i % 2].button(f"Rule {rule}: {keys[0]}", key=f"faq{rule}{keys[0]}"):
+                st.session_state.history.append(
+                    (keys[0], {"answer": ans, "rule": rule, "pages": (int(pages), int(pages)),
+                               "quote": ans, "title": "", "mode": "faq-instant", "calc": None,
+                               "retrieved": [], "score": 1.0, "subref": "", "entities": {},
+                               "confidence": "high", "followups": []}))
+                st.rerun()
+
     query = st.chat_input(t("ask_ph", UL))
     if "pending" in st.session_state:
         query = st.session_state.pop("pending")
@@ -294,7 +362,7 @@ with tab_chat:
     PDF_DIR = Path(__file__).parent / "pdf_pages"
 
     for idx, (q, res) in enumerate(st.session_state.history):
-        hi = is_hindi(q)
+        hi = is_hindi(q) or is_hindi(res.get("answer", ""))
         lang = "hi" if hi else "en"
         with st.chat_message("user"):
             st.write(q)
@@ -351,6 +419,9 @@ with tab_chat:
                     st.download_button(t("print_pdf", UL), pdf, file_name=f"slip_{idx+1}.pdf",
                                        key=f"pdf{idx}", mime="application/pdf")
                 st.download_button(t("slip_txt", UL), slip_text(q, res), file_name=f"slip_{idx+1}.txt", key=f"txt{idx}")
+                import urllib.parse as _up
+                wa = "https://wa.me/?text=" + _up.quote(f"Bhumi Vikas Sahayak — Rule {res['rule']}\n" + res["answer"][:800])
+                st.link_button("📲 WhatsApp par bhejo", wa)
             st.caption(DISCLAIMER_HI if hi else DISCLAIMER_EN)
             c1, c2 = st.columns(2)
             if c1.button("👍", key=f"up{idx}"):

@@ -99,7 +99,8 @@ def detect_calculation(query: str):
             a = nums["area_sqm"]
             return {"kind": "rear_setback", "plot_area_sqm": a,
                     "value_m": rear_open_space(a), "rule": "56"}
-    if "electric" in q or "बिजली" in q or "overhead" in q or "volt" in q:
+    if any(k in q for k in ["electric", "बिजली", "overhead", "volt", "वोल्टेज",
+                             "power line", "power", "wire", "taar", "तार"]):
         return {"kind": "electric", "rule": "52", **electric_clearance(query)}
     if "farm" in q or "फार्म" in q:
         return {"kind": "farmhouse", "rule": "17",
@@ -130,6 +131,9 @@ def detect_calculation(query: str):
                     "plot": nums.get("area_sqm"), "storeys": int(m.group(1)) if m else None}
         return {"kind": "sign", "rule": "18"}
     # occupancy / inspection BEFORE generic plan_change/deemed (more specific wins)
+    # deadline summary first of all: explicit timeline questions beat everything generic
+    if any(k in q for k in ["timeline", "kitne din", "how many days", "kab tak", "कब तक", "time limit"]):
+        return {"kind": "deadline", "rule": "23"}
     if any(k in q for k in ["occupancy", "completion certificate", "भोग", "अधिभोग"]):
         return {"kind": "occupancy", "rule": "31"}
     if any(k in q for k in ["inspect", "निरीक्षण"]) or ("plinth" in q and "certificate" in q):
@@ -157,6 +161,26 @@ def detect_calculation(query: str):
     # --- side open space (Rule 56(3)) ---
     if "side" in q and any(k in q for k in ["open", "gap", "setback", "बगल"]):
         return {"kind": "side_setback", "rule": "56"}
+    # --- room sizes (Rules 69-71); after electric so balcony-wire stays electric ---
+    if any(k in q for k in ["kitchen", "bedroom", "bathroom", "रसोई", "कमरा"]) or \
+            re.search(r"\broom\b|\bbath\b|\bwc\b|\btoilet\b", q):
+        return {"kind": "room", "rule": "69"}
+    # --- plantation & rainwater (Rules 67, 81); RWH split for exact citation ---
+    if any(k in q for k in ["rwh", "rainwater", "rain water", "harvesting", "वर्षा"]):
+        return {"kind": "rwh", "rule": "81"}
+    if any(k in q for k in ["plantation", "plant", "tree", "पेड़", "पौध"]):
+        return {"kind": "plantation", "rule": "67"}
+    # --- projections & boundary walls (Rules 58, 78); electric handled earlier ---
+    if any(k in q for k in ["projection", "cornice", "sunshade", "chhajja", "boundary wall",
+                            "compound wall", "दीवार", "छज्जा", "बालकनी"]) or \
+            (("balcony" in q) and ("electric" not in q and "बिजली" not in q and "volt" not in q)):
+        return {"kind": "projection", "rule": "58"}
+    # --- high-rise bands (Rule 42) ---
+    if re.search(r"\bhigh[\s-]?rise\b|tall building|बहुमंजिल|ऊंची इमारत", q):
+        return {"kind": "highrise_band", "rule": "42"}
+    # --- route wizard ---
+    if any(k in q for k in ["rasta", "kaunsa", "konsa", "which route", "best option", "fastest"]):
+        return {"kind": "route", "rule": "12"}
     return None
 
 
@@ -265,3 +289,83 @@ def fee_breakdown(builtup_sqm: float, use: str = "residential", highrise: bool =
     if revalidation_of:
         rows.append(("Revalidation 10% (if expired)", round(revalidation_of * 0.10)))
     return rows, total
+
+
+# --- Rules 69-71: room sizes (PDF p.87-89). Returns (ok, required_str, problems). ---
+def check_room(kind="habitable1", area=None, width=None, height=None):
+    """kind: habitable1 (only room), habitable2a/b, kitchen, kitchen_store,
+    kitchen_dining, bath, wc, bath_wc, wc_basin."""
+    R = {
+        "habitable1": (9.5, 2.4, 2.6), "habitable2a": (9.5, 2.4, 2.6),
+        "habitable2b": (7.5, 2.1, 2.6), "kitchen": (5.0, 1.8, 2.6),
+        "kitchen_store": (4.5, 1.8, 2.6), "kitchen_dining": (7.5, 2.1, 2.6),
+        "bath": (1.5, 1.1, 2.2), "wc": (1.1, 0.9, 2.2),
+        "bath_wc": (2.4, 1.2, 2.2), "wc_basin": (1.3, None, 2.2),
+    }
+    req_area, req_w, req_h = R[kind]
+    probs = []
+    if area is not None and area < req_area - 1e-9:
+        probs.append(f"area {area} < {req_area} sqm")
+    if width is not None and req_w and width < req_w - 1e-9:
+        probs.append(f"width {width} < {req_w} m")
+    if height is not None and height < req_h - 1e-9:
+        probs.append(f"height {height} < {req_h} m")
+    need = f"area >= {req_area} sqm" + (f", width >= {req_w} m" if req_w else "") + f", height >= {req_h} m"
+    return (not probs, need, "; ".join(probs))
+
+
+# --- Rules 67 + 81(4): plantation & rainwater harvesting ---
+def plantation_needed(plot_sqm: float) -> int:
+    """Rule 67: 1 tree per 100 sqm (plots >=100 sqm); occupancy only after compliance."""
+    if plot_sqm < 100:
+        return 0
+    import math
+    return math.ceil(plot_sqm / 100)
+
+
+def rwh_needed(plot_sqm: float) -> bool:
+    """Rule 81(4): rain/roof-water harvesting required on plots >140 sqm."""
+    return plot_sqm > 140
+
+
+# --- Rules 58 + 78: projections & boundary walls ---
+PROJECTION_LIMITS = {
+    "balcony": (1.20, "Rule 58(1)(c): projected balcony up to 1.20 m, 1.5 m clear of plot boundary"),
+    "cornice": (0.75, "Rule 58(1)(a): cornice/roof/weather shade up to 0.75 m"),
+    "sunshade": (0.75, "Rule 58(1)(b): sunshade over window up to 0.75 m"),
+    "garage_area": (25.0, "Rule 58(4)(b): private garage up to 25 sqm in rear side space"),
+    "wall_front": (1.5, "Rule 78(a): front compound wall up to 1.5 m"),
+    "wall_side": (2.0, "Rule 78(b): side/rear wall up to 2 m (3 m on service road)"),
+}
+
+
+def check_projection(kind: str, value: float):
+    lim, note = PROJECTION_LIMITS[kind]
+    return (value <= lim + 1e-9, lim, note)
+
+
+# --- Rule 42 Tables 4-5: height bands (PDF p.58-60) ---
+MID_BANDS = [  # (max_height, road, plot, frontage, far, front_mos, side_mos)
+    (18, 12.0, 1000, 18, 1.50, 7.5, 6.0),
+    (24, 18.0, 1500, 21, 1.75, 9.0, 6.0),
+    (30, 24.0, 2000, 30, 2.00, 12.0, 7.5),
+]
+HIGH_BANDS = [  # (max_height, road, plot, frontage, far, front_mos, side_mos)
+    (45, 30.0, 2500, 30, 2.25, 15.0, 7.5),
+    (60, 36.0, 3000, 40, 2.50, 18.0, 9.0),
+    (75, 45.0, 3500, 45, 2.75, 21.0, 9.0),
+    (90, 60.0, 4000, 50, 3.00, 24.0, 10.0),
+    (float("inf"), 75.0, 4500, 60, 3.00, 30.0, 12.0),
+]
+
+
+def height_band(height_m: float):
+    """Return dict with band norms for a proposed height, or None if <=12.5 m."""
+    if height_m <= 12.5:
+        return None
+    for mx, road, plot, frontage, far, fmos, smos in MID_BANDS + HIGH_BANDS:
+        if height_m <= mx:
+            return {"max": mx if mx != float("inf") else "90+",
+                    "highrise": height_m > 30 or False, "road": road, "plot": plot,
+                    "frontage": frontage, "far": far, "front_mos": fmos, "side_mos": smos}
+    return None
