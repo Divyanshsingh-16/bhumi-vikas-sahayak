@@ -12,17 +12,37 @@ from llm import is_hindi
 from visual import plot_svg
 from slip import slip_text, slip_pdf_bytes
 from voice import mic_box, speak_button
-from calculators import front_open_space, rear_open_space, building_fee
+from calculators import front_open_space, rear_open_space, building_fee, fee_breakdown
 from amendment_forms import AMENDMENT, FORMS, route_form
+from i18n import t
+from journey import journey_html, STEPS
+import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Bhumi Vikas Sahayak", page_icon="🏠", layout="centered")
+st.set_page_config(page_title="Bhumi Vikas Sahayak", page_icon="🏠", layout="wide")
 
 LOG_PATH = Path(__file__).parent / "eval" / "counter_log.csv"
 CONF_ICON = {"high": "🟢", "medium": "🟡", "low": "🔴"}
 
+st.markdown("""
+<style>
+.hero-bar{height:6px;border-radius:3px;background:linear-gradient(90deg,#FF9933 0%,#FFFFFF 50%,#138808 100%);margin-bottom:10px}
+.stat-chip{display:inline-block;background:#E8F5E9;border:1px solid #A5D6A7;border-radius:20px;
+  padding:4px 14px;margin:2px;font-size:14px;font-weight:600;color:#1B5E20}
+.answer-card{background:#FAFAFA;border:1px solid #E0E0E0;border-left:5px solid #1B5E20;
+  border-radius:8px;padding:12px 14px;margin:6px 0}
+.rule-chip{display:inline-block;background:#1B5E20;color:white;border-radius:6px;
+  padding:2px 10px;font-size:13px;font-weight:700}
+.conf-pill{display:inline-block;border-radius:12px;padding:1px 10px;font-size:12px;font-weight:600}
+.quote-box{border-left:3px solid #9E9E9E;padding:6px 12px;color:#424242;font-style:italic;margin:8px 0}
+</style>
+<div class="hero-bar"></div>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
     st.header("⚙️ Counter settings")
-    kiosk = st.toggle("Kiosk mode (large text)", value=False)
+    ui_lang = st.radio("🌐 भाषा / Language", ["English", "हिंदी"], horizontal=True)
+    UL = "hi" if ui_lang == "हिंदी" else "en"
+    kiosk = st.toggle("Kiosk mode (large text + contrast)", value=False)
     show_evidence = st.toggle("Show PDF evidence", value=True)
     show_diagram = st.toggle("Show plot diagram", value=True)
     st.divider()
@@ -32,30 +52,117 @@ with st.sidebar:
     st.caption(f"📖 {VERSION_STRING}")
 
 if kiosk:
-    st.markdown("<style>html{font-size:20px} .stChatMessage{font-size:1.15rem}</style>", unsafe_allow_html=True)
+    st.markdown("""<style>
+html{font-size:22px} .stChatMessage{font-size:1.25rem}
+.stButton>button{font-size:1.15rem !important;padding:12px 20px !important;border-radius:12px !important}
+.answer-card{font-size:1.15rem}
+</style>""", unsafe_allow_html=True)
 
-st.title("🏠 Bhumi Vikas Sahayak")
-st.caption("Ask the Bhopal building rulebook — get the answer with the rule number.")
-st.info(f"📖 Source: {VERSION_STRING}\n\n⚠️ {PATCH_NOTE_EN}")
+st.title("🏠 Bhumi Vikas Sahayak" if UL == "en" else "🏠 भूमि विकास सहायक")
+st.caption(t("tagline", UL))
+c1, c2, c3 = st.columns(3)
+c1.markdown('<span class="stat-chip">📜 106 rules</span>', unsafe_allow_html=True)
+c2.markdown('<span class="stat-chip">🎯 53/53 answers traced</span>', unsafe_allow_html=True)
+c3.markdown('<span class="stat-chip">🗣️ EN + हिंदी + 🎤</span>', unsafe_allow_html=True)
+st.info(f"📖 Source: {VERSION_STRING}\n\n⚠️ {PATCH_NOTE_EN if UL=='en' else PATCH_NOTE_HI}")
 
-tab_chat, tab_case, tab_forms, tab_eval = st.tabs(["💬 Chat", "📋 Case file (forms)", "📜 Amendment + Forms", "📊 Officer"])
+tab_chat, tab_bot, tab_3d, tab_case, tab_forms, tab_eval = st.tabs(
+    ["💬 Chat", "🤖 Sahayak Bot", "🏙️ 3D View", "📋 Case file (forms)", "📜 Amendment + Forms", "📊 Officer"])
+
+with tab_bot:
+    st.subheader("🤖 Sahayak — guided, no typing needed")
+    st.caption("Tap quick replies or type numbers. Speaks Hindi + English.")
+    from bot import bot_reply, QUICK_PLOTS
+    if "bot_state" not in st.session_state:
+        st.session_state.bot_state = {"step": "greet", "lang": "en"}
+        st.session_state.bot_hist = []
+    if not st.session_state.bot_hist:
+        rep, st.session_state.bot_state, _ = bot_reply(dict(st.session_state.bot_state), None)
+        st.session_state.bot_hist.append(("bot", rep))
+    for who, msg in st.session_state.bot_hist:
+        with st.chat_message("assistant" if who == "bot" else "user"):
+            st.markdown(msg)
+    if st.session_state.bot_state.get("step") == "plot":
+        cols = st.columns(3)
+        for i, p in enumerate(QUICK_PLOTS):
+            if cols[i % 3].button(f"{p} sqm", key=f"qp{i}"):
+                rep, st.session_state.bot_state, _ = bot_reply(dict(st.session_state.bot_state), str(p))
+                st.session_state.bot_hist.append(("user", f"{p} sqm"))
+                st.session_state.bot_hist.append(("bot", rep))
+                st.rerun()
+    bq = st.chat_input("Bot se baat karein…", key="botinput")
+    if bq:
+        st.session_state.bot_hist.append(("user", bq))
+        rep, st.session_state.bot_state, done = bot_reply(dict(st.session_state.bot_state), bq)
+        st.session_state.bot_hist.append(("bot", rep))
+        if done:
+            st.session_state.bot_state = {"step": "greet", "lang": st.session_state.bot_state.get("lang", "en")}
+        st.rerun()
+
+with tab_3d:
+    st.subheader("🏙️ 3D plot + building (drag to rotate)")
+    from building3d import building_3d_html, BHOPAL_MAP_IFRAME
+    from violation import check_proposal, verdict
+    import streamlit.components.v1 as components
+    v1, v2, v3 = st.columns(3)
+    v_road = v1.number_input("Road width (m)", 0.0, 60.0, 9.0, 0.5, key="v3road")
+    v_plot = v2.number_input("Plot area (sqm)", 0.0, 100000.0, 200.0, 1.0, key="v3plot")
+    v_height = v3.number_input("Building height (m)", 0.0, 100.0, 9.0, 0.5, key="v3h")
+    v4, v5, v6 = st.columns(3)
+    v_front = v4.number_input("Proposed front gap (m)", 0.0, 30.0, 3.0, 0.1, key="v3f")
+    v_rear = v5.number_input("Proposed rear gap (m)", 0.0, 30.0, 1.5, 0.1, key="v3r")
+    v_floors = v6.number_input("Floors", 1, 30, 3, 1, key="v3fl")
+    from calculators import front_open_space, rear_open_space
+    req_f, req_r = front_open_space(v_road), rear_open_space(v_plot)
+    checks = check_proposal(plot_sqm=v_plot, road_m=v_road, front_m=v_front, rear_m=v_rear,
+                            height_m=v_height, floors=v_floors)
+    status, msg = verdict(checks)
+    if status == "pass":
+        st.success(msg)
+    elif status == "fail":
+        st.error(msg)
+    else:
+        st.info(msg)
+    for c in checks:
+        icon = "✅" if c["ok"] else ("❌" if c["ok"] is False else "ℹ️")
+        st.write(f"{icon} {c['item']}: proposed **{c['proposed']}** vs required **{c['required']}** (Rule {c['rule']})")
+    import math
+    pw = math.sqrt(v_plot * 0.6) or 10
+    pd = (v_plot / pw) if pw else 20
+    components.html(building_3d_html(plot_w=round(pw, 1), plot_d=round(pd, 1),
+                                     front=req_f, rear=req_r or 0.1, side=1.5,
+                                     height=v_height, floors=v_floors,
+                                     violations=[c["item"] for c in checks if c["ok"] is False]),
+                    height=480)
+    st.markdown(plot_svg(front=req_f, rear=req_r or 0.1, lang="en"), unsafe_allow_html=True)
+    st.divider()
+    st.subheader("📍 Bhopal — counter map")
+    components.html(BHOPAL_MAP_IFRAME, height=440)
 
 with tab_case:
-    st.subheader("Counter forms — no typing needed")
+    st.subheader("Counter forms — no typing needed" if UL == "en" else "काउंटर फॉर्म — टाइपिंग नहीं चाहिए")
     c1, c2 = st.columns(2)
     road = c1.number_input("Road width (m)", 0.0, 60.0, 9.0, 0.5)
     area = c2.number_input("Plot area (sq m)", 0.0, 100000.0, 200.0, 1.0)
     built = st.number_input("Proposed built-up area (sq m)", 0.0, 100000.0, 150.0, 1.0)
-    use = st.selectbox("Use", ["residential", "shop/commercial"])
+    u1, u2 = st.columns(2)
+    use = u1.selectbox("Use", ["residential", "shop/commercial", "shop-cum-residence", "cinema"])
+    highrise = u2.toggle("High-rise (>10 storeys / >30 m)", value=False)
     if st.button("Calculate case", type="primary"):
         f, r = front_open_space(road), rear_open_space(area)
-        fee = building_fee(built, commercial=(use != "residential"))
-        st.success(f"Front: {f} m (R56) · Rear: {r if r else 'Nil'} m (R56) · Fee: Rs {fee} (R21)")
+        rows, total = fee_breakdown(built, use=("commercial" if use.startswith("shop/") else use),
+                                    highrise=highrise)
+        st.success(f"Front: {f} m (R56) · Rear: {r if r else 'Nil'} m (R56) · Total fee: Rs {total} (R21)")
+        with st.expander("💰 Fee breakdown (Rule 21)" if UL == "en" else "💰 शुल्क विवरण (नियम 21)"):
+            for label, rs in rows:
+                st.write(f"• {label}: **Rs {rs}**")
+            st.write(f"**Total: Rs {total}**")
         st.markdown(plot_svg(front=f, rear=(r or 0) or 0.1, lang="en"), unsafe_allow_html=True)
         slip = (f"BHUMI VIKAS SAHAYAK — Case {datetime.now():%d-%m-%Y %H:%M}\n"
                 f"Road {road} m -> front {f} m (Rule 56 p.77)\n"
                 f"Plot {area} sqm -> rear {r if r else 'Nil'} m (Rule 56 p.78)\n"
-                f"Built-up {built} sqm ({use}) -> fee Rs {fee} (Rule 21 p.36-37)\n"
+                f"Built-up {built} sqm ({use}{' high-rise' if highrise else ''}) -> fee Rs {total} (Rule 21)\n"
+                + "\n".join(f"  {label}: Rs {rs}" for label, rs in rows) + "\n"
                 f"Source: {VERSION_STRING}. Clerk decides; not legal advice.")
         st.download_button("🧾 Download case slip", slip, file_name="case_slip.txt")
 
@@ -64,6 +171,17 @@ with tab_forms:
     st.warning(AMENDMENT["en"])
     st.write(AMENDMENT["hi"])
     st.caption("Source: teamleaseregtech article 59469 (read 10-10-2026). Full amendment text is NOT in our data — verify with the Authority.")
+    st.divider()
+    st.subheader("🗺️ Application journey (click a step)" if UL == "en" else "🗺️ आवेदन यात्रा")
+    import streamlit.components.v1 as _comp
+    _comp.html(journey_html(lang=UL, done=int(st.session_state.get("jstep", 0))), height=110)
+    jc = st.columns(5)
+    for i, s in enumerate(STEPS):
+        if jc[i].button(f"{i+1}. {s['hi' if UL=='hi' else 'en'][:22]}…", key=f"j{i}"):
+            st.session_state["jstep"] = i
+            st.rerun()
+    cur = STEPS[int(st.session_state.get("jstep", 0))]
+    st.info(f"**{cur['hi' if UL=='hi' else 'en']}** (Rule {cur['rule']})\n\n{cur['detail_hi' if UL=='hi' else 'detail_en']}")
     st.divider()
     st.subheader("Which form / checklist?")
     fq = st.text_input("Describe the work (e.g. new house, shop alteration, layout, revalidation)")
@@ -118,19 +236,24 @@ with tab_chat:
     if "votes" not in st.session_state:
         st.session_state.votes = {}
 
+    if not st.session_state.history:
+        st.markdown(f'<span class="stat-chip">👉 {t("steps", UL)}</span>', unsafe_allow_html=True)
+
+    cols = st.columns(2)
+
     cols = st.columns(2)
     for i, ex in enumerate(EXAMPLES[:4]):
         if cols[i % 2].button(ex[:44] + "…", key=f"ex{i}"):
             st.session_state.pending = ex
             st.rerun()
 
-    if st.button("▶️ Guided demo (3 questions, ~60 sec)", key="demo"):
+    if st.button(t("demo_btn", UL), key="demo"):
         for dq in [EXAMPLES[4], EXAMPLES[2], EXAMPLES[7]]:
-            with st.spinner("Niyam khoj rahe hain…"):
+            with st.spinner(t("searching", UL)):
                 st.session_state.history.append((dq, pipeline(dq)))
         st.rerun()
 
-    query = st.chat_input("Sawal likhein / Ask — English या हिंदी में… (mic above ☝️)")
+    query = st.chat_input(t("ask_ph", UL))
     if "pending" in st.session_state:
         query = st.session_state.pop("pending")
 
@@ -139,7 +262,7 @@ with tab_chat:
         if len(query.strip()) < 30 and st.session_state.history:
             last_q = st.session_state.history[-1][0]
             query = f"{last_q} Follow-up: {query}"
-        with st.spinner("Niyam khoj rahe hain…"):
+        with st.spinner(t("searching", UL)):
             res = pipeline(query)
         st.session_state.history.append((query, res))
         try:
@@ -162,17 +285,23 @@ with tab_chat:
         with st.chat_message("user"):
             st.write(q)
         with st.chat_message("assistant"):
-            st.write(res["answer"])
+            conf = res.get("confidence", "?")
+            conf_color = {"high": "#2E7D32", "medium": "#EF6C00", "low": "#C62828"}.get(conf, "#616161")
+            st.markdown(f'<div class="answer-card">{res["answer"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<span class="conf-pill" style="background:{conf_color}22;color:{conf_color};'
+                        f'border:1px solid {conf_color}">{CONF_ICON.get(conf, "⚪")} {conf}</span>',
+                        unsafe_allow_html=True)
             speak_button(res["answer"], lang, f"sp{idx}")
-            st.caption(f"{CONF_ICON.get(res.get('confidence','medium'))} confidence: {res.get('confidence','?')}")
             ent = res.get("entities") or {}
             if ent.get("needs") and not res.get("calc"):
                 st.warning(f"❓ {'Aur jaankari dein' if hi else 'Need one more detail'}: {ent['needs']}")
             if res.get("rule"):
                 sub = f"({res['subref']})" if res.get("subref") else ""
-                st.success(f"📜 Rule {res['rule']}{sub} — {res.get('title','')} | PDF p.{res['pages'][0]}–{res['pages'][1]}")
-                with st.expander("Exact text (quote)"):
-                    st.write(f"\"{res['quote']}\"")
+                st.markdown(f'<span class="rule-chip">📜 Rule {res["rule"]}{sub}</span> '
+                            f'**{res.get("title","")}** | PDF p.{res["pages"][0]}–{res["pages"][1]}',
+                            unsafe_allow_html=True)
+                with st.expander(t("exact_text", UL)):
+                    st.markdown(f'<div class="quote-box">"{res["quote"]}"</div>', unsafe_allow_html=True)
                 retr = res.get("retrieved", [])
                 if len(retr) > 1 and retr[1][0]["rule"] in ("103", "12", "28") and retr[1][0]["rule"] != res["rule"]:
                     r2 = retr[1][0]
@@ -187,10 +316,10 @@ with tab_chat:
                     p = res["pages"][0]
                     img = PDF_DIR / f"p{p}.png"
                     if img.exists():
-                        with st.expander(f"📄 PDF page {p} (source of truth)"):
+                        with st.expander(f"📄 {t('evidence', UL, p=p)}"):
                             st.image(str(img))
                     else:
-                        st.caption(f"PDF evidence: open EN PDF at page {p} to verify.")
+                        st.caption(t("evidence_hint", UL, p=p))
                 if res["rule"] in ("2", "12") or "500" in q or "300" in q:
                     st.warning(PATCH_NOTE_HI if hi else PATCH_NOTE_EN)
                 fk = route_form(q)
@@ -198,9 +327,9 @@ with tab_chat:
                     st.caption(f"📝 Form: {FORMS[fk]['form']} · Fee: {FORMS[fk]['fee']} (see 📜 Amendment + Forms tab for checklist)")
                 pdf = slip_pdf_bytes(q, res)
                 if pdf:
-                    st.download_button("🖨️ Print slip (PDF)", pdf, file_name=f"slip_{idx+1}.pdf",
+                    st.download_button(t("print_pdf", UL), pdf, file_name=f"slip_{idx+1}.pdf",
                                        key=f"pdf{idx}", mime="application/pdf")
-                st.download_button("🧾 Slip (text)", slip_text(q, res), file_name=f"slip_{idx+1}.txt", key=f"txt{idx}")
+                st.download_button(t("slip_txt", UL), slip_text(q, res), file_name=f"slip_{idx+1}.txt", key=f"txt{idx}")
             st.caption(DISCLAIMER_HI if hi else DISCLAIMER_EN)
             c1, c2 = st.columns(2)
             if c1.button("👍", key=f"up{idx}"):
@@ -211,7 +340,7 @@ with tab_chat:
                        + (f" · vote: {st.session_state.votes.get(idx)}" if idx in st.session_state.votes else ""))
 
     st.divider()
-    st.caption("More examples — tap to ask:")
+    st.caption(t("examples", UL))
     for ex in EXAMPLES[4:]:
         if st.button(ex, key=ex[:24]):
             st.session_state.pending = ex

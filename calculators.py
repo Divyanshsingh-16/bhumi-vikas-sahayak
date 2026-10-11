@@ -236,3 +236,29 @@ def highrise_fee(builtup_sqm: float, use: str = "residential") -> float:
     if "cum" in u or "shop-cum" in u or "residence" in u and "shop" in u:
         return base * 1.5
     return base
+
+
+def fee_breakdown(builtup_sqm: float, use: str = "residential", highrise: bool = False,
+                  revalidation_of: float | None = None):
+    """Full Rule-21 math. Returns (rows[(label, Rs)], total). All deterministic."""
+    rows = [("Application fee (Rs 1/sqm built-up)", round(builtup_sqm * 1.0))]
+    u = use.lower()
+    if highrise:
+        base = builtup_sqm * 10.0
+        rows.append(("High-rise permission (Rs 10/sqm)", round(base)))
+        if any(k in u for k in ("shop", "commercial", "industrial")):
+            rows.append(("+100% commercial", round(base)))
+            total = round(base * 2)
+        elif "cum" in u:
+            rows.append(("+50% shop-cum-residence", round(base * 0.5)))
+            total = round(base * 1.5)
+        else:
+            total = round(base)
+    else:
+        fee = building_fee(builtup_sqm, commercial=("commercial" in u or "shop" in u or "industrial" in u))
+        rows.append(("Permission fee (slab, Rule 21(3)(b))", fee))
+        total = fee
+    total += round(builtup_sqm)
+    if revalidation_of:
+        rows.append(("Revalidation 10% (if expired)", round(revalidation_of * 0.10)))
+    return rows, total
