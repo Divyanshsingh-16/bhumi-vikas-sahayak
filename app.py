@@ -222,10 +222,21 @@ with tab_case:
             st.caption("No saved cases yet.")
 
 with tab_forms:
-    st.subheader("28-08-2026 Amendment — Rule 2(5)(c), plots ≤500 sq m")
+    st.subheader("28-08-2026 Gazette — Rule 2(5)(c), plots ≤500 sq m")
     st.warning(AMENDMENT["en"])
     st.write(AMENDMENT["hi"])
-    st.caption("Source: teamleaseregtech article 59469 (read 10-10-2026). Full amendment text is NOT in our data — verify with the Authority.")
+    from patch_2026 import AMEND_QUOTE_EN, AMEND_QUOTE_HI, AMEND_REF
+    st.caption(f"Source: {AMEND_REF} (copy in repo resources/). "
+               "Status: DRAFT for 15-day objections — confirm final position with the Authority.")
+    with st.expander("📜 Exact gazette text (English)"):
+        st.write(f'"{AMEND_QUOTE_EN}"')
+    with st.expander("📜 राजपत्र पाठ (हिंदी)"):
+        st.write(f'"{AMEND_QUOTE_HI}"')
+    for _aimg, _alab in (("a1.png", "Gazette p.313 (Hindi draft)"), ("a2.png", "Gazette p.314 (English text)")):
+        _p = Path(__file__).parent / "pdf_pages" / _aimg
+        if _p.exists():
+            with st.expander(f"📰 {_alab}"):
+                st.image(str(_p))
     st.divider()
     st.subheader("🗺️ Application journey (click a step)" if UL == "en" else "🗺️ आवेदन यात्रा")
     import streamlit.components.v1 as _comp
@@ -426,6 +437,15 @@ with tab_chat:
                         st.caption(t("evidence_hint", UL, p=p))
                 if res["rule"] in ("2", "12") or "500" in q or "300" in q:
                     st.warning(PATCH_NOTE_HI if hi else PATCH_NOTE_EN)
+                    from patch_2026 import AMEND_QUOTE_EN, AMEND_QUOTE_HI, AMEND_REF
+                    with st.expander("📜 28-08-2026 gazette text" if UL == "en" else "📜 28-08-2026 राजपत्र पाठ"):
+                        st.write(f'"{AMEND_QUOTE_HI if hi else AMEND_QUOTE_EN}"')
+                        st.caption(AMEND_REF + " — DRAFT for objections; confirm final status.")
+                    for _aimg, _alab in (("a1.png", "p.313"), ("a2.png", "p.314")):
+                        _p = PDF_DIR / _aimg
+                        if _p.exists():
+                            with st.expander(f"📰 Rajpatra {_alab}"):
+                                st.image(str(_p))
                 fk = route_form(q)
                 if fk:
                     st.caption(f"📝 Form: {FORMS[fk]['form']} · Fee: {FORMS[fk]['fee']} (see 📜 Amendment + Forms tab for checklist)")

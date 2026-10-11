@@ -1,6 +1,23 @@
-"""Version stamp — the rules changed after our data freeze."""
+"""Version stamp + the REAL 28-08-2026 gazette text (transcribed from the Rajpatra scan)."""
 
 VERSION_STRING = "MP Bhumi Vikas Rules, 2012 — English consolidated upto 06-03-2025"
+
+AMEND_QUOTE_EN = (
+    "(c) In conformity with the existing land use specified in the approved Development "
+    "Plan of the town, the local authority shall permit the construction/reconstruction of "
+    "buildings on plots having an area of up to 500 sq. m, subject to the norms of the "
+    "Development Plan, without requiring development permission under clause 'a' of "
+    "Sub-rule (5) of Rule 2."
+)
+
+AMEND_QUOTE_HI = (
+    "(ग)— नगर की अंगीकृत विकास योजना में निर्दिष्ट वर्तमान भूमि उपयोग के अनुरूप 500 "
+    "वर्गमीटर तक क्षेत्रफल के भूखण्ड पर उपनियम \"क\" के तहत भूमि के विकास के लिए अनुज्ञा "
+    "की अपेक्षा न करते हुये विकास योजना मापदण्डों के अधीन, भवन के निर्माण/पुनर्निर्माण "
+    "की अनुमति संबंधित स्थानीय निकाय द्वारा प्रदान की जाएगी।"
+)
+
+AMEND_REF = "No. UDH-3-0120-2025-XVIII-5, dated 25-08-2026; MP Rajpatra 28-08-2026, pp 313-314"
 
 PATCH_NOTE_EN = (
     "Note: Rule 2(5)(c) for plots up to 500 sq m was amended on 28-08-2026 "

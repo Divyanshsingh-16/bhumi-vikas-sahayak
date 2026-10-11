@@ -3,17 +3,17 @@ Content grounded in pack sources; amendment text itself is a pointer (not in pac
 
 AMENDMENT = {
     "en": (
-        "On 28-08-2026 the Government of Madhya Pradesh amended Rule 2(5)(c) "
-        "for plots up to 500 sq m. Our rulebook data freezes at 06-03-2025, so for "
-        "plots ≤500 sq m that match the Development Plan (e.g. a 300 sq m plot), "
-        "confirm the August-2026 position with the Authority before deciding. "
-        "See: teamleaseregtech article 59469 (read 10-10-2026)."
+        "On 28-08-2026 (No. UDH-3-0120-2025-XVIII-5, dated 25-08-2026; MP Rajpatra pp 313-314) "
+        "the Government gazetted a NEW Rule 2(5)(c): plots up to 500 sq m in conformity with "
+        "the approved Development Plan need NO development permission under Rule 2(5)(a) — "
+        "the local body permits construction/reconstruction directly, subject to Plan norms. "
+        "Published as DRAFT for 15-day objections — confirm final status with the Authority."
     ),
     "hi": (
-        "28-08-2026 को मध्यप्रदेश सरकार ने 500 वर्ग मीटर तक के प्लॉट के लिए नियम 2(5)(c) "
-        "में संशोधन किया। हमारा डेटा 06-03-2025 तक का है, इसलिए ≤500 वर्ग मीटर के प्लॉट "
-        "(जैसे 300 वर्ग मीटर, विकास योजना के अनुरूप) पर निर्णय से पहले प्राधिकारी से "
-        "अगस्त-2026 की स्थिति अवश्य जांचें।"
+        "28-08-2026 (क्र. UDH-3-0120-2025-XVIII-5, दिनांक 25-08-2026; म.प्र. राजपत्र पृ. 313-314) "
+        "को शासन ने नया नियम 2(5)(c) राजपत्र में दिया: विकास योजना अनुरूप 500 वर्ग मीटर तक के "
+        "प्लॉट पर नियम 2(5)(a) की विकास अनुमति ज़रूरी नहीं — स्थानीय निकाय सीधे निर्माण अनुमति "
+        "देगा। 15 दिन की आपत्तियों हेतु प्रारूप था — अंतिम स्थिति जांचें।"
     ),
 }
 

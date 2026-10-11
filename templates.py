@@ -124,8 +124,8 @@ TEMPLATES = {
         "hi": "सीढ़ी न्यूनतम चौड़ाई: आवासीय 0.85मी; होटल/सभा/अन्य 1.5मी; ऊंचे शैक्षणिक/संस्थागत 2.0मी। पायदान ≥25सेमी, राइज़र ≤17सेमी, ऊंचाई ≥2.2मी (नियम 80, PDF पृ.93)।",
     },
     "plot300": {
-        "en": "Verdict: under the March-2025 rules, a 300 sq m plot in an approved layout could use an authorised Architect/Structural Engineer (Rule 6(3)) or standard plans (Rule 21(4)) — BUT the 28-08-2026 amendment to Rule 2(5)(c) changed plots up to 500 sq m. Do NOT decide on old rules alone; confirm the August-2026 position with the Authority.",
-        "hi": "निर्णय: मार्च-2025 नियमों में 300 वर्ग मीटर प्लॉट हेतु अधिकृत आर्किटेक्ट (नियम 6(3)) या मानक योजना (नियम 21(4)) का रास्ता था — पर 28-08-2026 संशोधन (नियम 2(5)(c), 500 वर्ग मीटर तक) के बाद पुराने नियमों पर निर्णय न लें; प्राधिकारी से अगस्त-2026 स्थिति जांचें।",
+        "en": "Verdict: under the March-2025 rules, a 300 sq m plot in an approved layout could use an authorised Architect (Rule 6(3)) or standard plans (Rule 21(4)) — BUT on 28-08-2026 the Government gazetted a NEW Rule 2(5)(c): plots up to 500 sq m in conformity with the Development Plan need NO development permission (local body permits construction directly). It was published as DRAFT for 15-day objections — confirm final status with the Authority before deciding.",
+        "hi": "निर्णय: मार्च-2025 नियमों में 300 वर्ग मीटर हेतु अधिकृत आर्किटेक्ट (नियम 6(3)) या मानक योजना (नियम 21(4)) का रास्ता था — पर 28-08-2026 को शासन ने नया नियम 2(5)(c) राजपत्र में दिया: विकास योजना अनुरूप 500 वर्ग मीटर तक के प्लॉट पर विकास अनुमति ज़रूरी नहीं। यह प्रारूप (15 दिन आपत्ति हेतु) था — निर्णय से पहले अंतिम स्थिति जांचें।",
     },
 }
 
