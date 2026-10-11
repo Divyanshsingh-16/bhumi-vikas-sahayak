@@ -144,8 +144,10 @@ with tab_3d:
     components.html(building_3d_html(plot_w=round(pw, 1), plot_d=round(pd, 1),
                                      front=req_f, rear=req_r or 0.1, side=1.5,
                                      height=v_height, floors=v_floors,
-                                     violations=[c["item"] for c in checks if c["ok"] is False]),
-                    height=480)
+                                     violations=[c["item"] for c in checks if c["ok"] is False],
+                                     lang=UL, far_max_height=round(v_height * 1.5, 1),
+                                     uid="b3dmain"),
+                    height=680)
     st.markdown(plot_svg(front=req_f, rear=req_r or 0.1, lang="en"), unsafe_allow_html=True)
     st.divider()
     st.subheader("📍 Bhopal — counter map")
