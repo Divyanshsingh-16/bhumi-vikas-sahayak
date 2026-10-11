@@ -24,7 +24,11 @@ def check_proposal(plot_sqm=None, road_m=None, front_m=None, rear_m=None,
         lim = far_limit("residential" if "resi" in use.lower() or use == "residential" else use)
         if lim:
             got = builtup_sqm / plot_for_far
-            out.append({"item": "FAR", "proposed": round(got, 2), "required": lim,
+            max_built = round(lim * plot_for_far, 1)
+            over = round(builtup_sqm - max_built, 1)
+            req = f"{lim} (max built-up {max_built} sqm" + \
+                  (f"; shrink by {over} sqm ≈ {(over / max_built):.0%} footprint cut" if over > 0 else "") + ")"
+            out.append({"item": "FAR", "proposed": round(got, 2), "required": req,
                         "ok": got <= lim + 1e-9, "rule": "61"})
     if floors is not None and floors > 10:
         out.append({"item": "High-rise", "proposed": f"{floors} storeys",

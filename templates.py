@@ -128,8 +128,8 @@ TEMPLATES = {
         "hi": "सेप्टिक टैंक: पेयजल से ≥18मी, भवन से ≥2मी; न्यूनतम 75सेमी चौड़ा, 1मी गहरा, 1 घन मी; बहिःस्राव खुले नाले/जल में नहीं (नियम 79, PDF पृ.92)।",
     },
     "stair": {
-        "en": "Staircase min width: residential 0.85m; hotel/assembly/other 1.5m; educational or institutional tall blocks 2.0m. Tread ≥25cm (30cm non-residential), riser ≤17cm (15cm others), headroom ≥2.2m (Rule 80, PDF p.93).",
-        "hi": "सीढ़ी न्यूनतम चौड़ाई: आवासीय 0.85मी; होटल/सभा/अन्य 1.5मी; ऊंचे शैक्षणिक/संस्थागत 2.0मी। पायदान ≥25सेमी, राइज़र ≤17सेमी, ऊंचाई ≥2.2मी (नियम 80, PDF पृ.93)।",
+        "en": "Staircase min width: residential 0.85m; hotel/assembly/other 1.5m; educational or institutional tall blocks 2.0m. Tread ≥25cm (30cm non-residential), riser ≤17cm (15cm others), headroom ≥2.2m (Rule 80, PDF p.93).{geom}",
+        "hi": "सीढ़ी न्यूनतम चौड़ाई: आवासीय 0.85मी; होटल/सभा/अन्य 1.5मी; ऊंचे शैक्षणिक/संस्थागत 2.0मी। पायदान ≥25सेमी, राइज़र ≤17सेमी, ऊंचाई ≥2.2मी (नियम 80, PDF पृ.93)।{geom}",
     },
     "marriage": {
         "en": "Marriage garden: town >5 lakh needs 10000 sqm plot, 18m road, 40m frontage, FAR 0.10, 40% parking; smaller towns 4000 sqm, 12m road, 25m frontage, 30% parking; 6m front MOS after parking (Rule 53, PDF p.70-71).",
@@ -290,6 +290,20 @@ def template_answer(calc: dict, lang: str) -> str | None:
         if calc["kind"] == "electric":
             v = calc.get("vertical") or "—"
             return s.format(v=v, h=calc.get("horizontal"))
+        if calc["kind"] == "stair" and calc.get("geom"):
+            g = calc["geom"]
+            if lang == "hi":
+                geom = (f" उदाहरण ({g['floor_h']} मी मंजिल): {g['risers']} राइज़र, {g['flights']} उड़ान, "
+                        f"कोर {g['core_m']} मी।")
+            else:
+                geom = (f" E.g. {g['floor_h']} m floor: {g['risers']} risers in {g['flights']} flight(s), "
+                        f"core {g['core_m']} m.")
+            return s.format(geom=geom)
+        if calc["kind"] in TEMPLATES:
+            try:
+                return s.format(geom="")
+            except (KeyError, IndexError):
+                return s
         if calc["kind"] == "competence" and calc.get("who"):
             from competence import ROLE_HI
             who = calc["who"]

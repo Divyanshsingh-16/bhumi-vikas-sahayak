@@ -221,7 +221,13 @@ def detect_calculation(query: str):
         return {"kind": "septic", "rule": "79"}
     # --- staircase (Rule 80) ---
     if any(k in q for k in ["staircase", "stairs", "stair", "सीढ़ी"]):
-        return {"kind": "stair", "rule": "80"}
+        _nums = extract_numbers(query)
+        _fh = _nums.get("height_m")
+        _assumed = not (_fh and 1 <= _fh <= 6)
+        _g = stair_design(_fh if not _assumed else 3.0)
+        _g["floor_h"] = _fh if not _assumed else 3.0
+        return {"kind": "stair", "rule": "80", "geom": _g,
+                "note": "" if not _assumed else "floor height assumed 3.0 m"}
     # --- marriage garden (Rule 53) ---
     if any(k in q for k in ["marriage garden", "marriage hall", "mangal karyalaya",
                             "मैरिज", "शादी", "विवाह"]):
@@ -405,6 +411,28 @@ def envelope_57(use: str = "educational", height_m: float = 10.0):
         extra = max(0.0, height_m - 16) * 0.25
         return (4.5 + extra, 4.5 + extra)
     return (6.0, 6.0)  # educational, institutional, default
+
+
+# --- Rule 80: staircase geometry (PDF p.93) ---
+def stair_design(floor_h: float = 3.0, use: str = "residential", tall: bool = False):
+    """Dog-leg stair: risers, flights, treads, landing, core size. All from Rule 80."""
+    import math
+    u = use.lower()
+    resi = "resi" in u or use == "residential"
+    riser_max = 0.17 if resi else 0.15
+    tread = 0.25 if resi else 0.30
+    width = stair_width(use, tall)
+    n = max(1, math.ceil(floor_h / riser_max))
+    flights = 2 if n > 8 else 1
+    per = math.ceil(n / flights)
+    landing = 2 * tread + 0.25
+    going = per * tread
+    core_w = round(2 * width + 0.1, 2)
+    core_l = round(going + landing, 2)
+    return {"risers": n, "riser_m": round(floor_h / n, 3), "flights": flights,
+            "treads_per_flight": per, "tread_m": tread, "width_m": width,
+            "landing_m": round(landing, 2), "core_m": f"{core_w} x {core_l}",
+            "headroom_m": 2.2}
 
 
 # --- Rule 42 Tables 4-5: height bands (PDF p.58-60) ---

@@ -144,9 +144,13 @@ with tab_3d:
     v_front = v4.number_input("Proposed front gap (m)", 0.0, 30.0, 3.0, 0.1, key="v3f")
     v_rear = v5.number_input("Proposed rear gap (m)", 0.0, 30.0, 1.5, 0.1, key="v3r")
     v_floors = v6.number_input("Floors", 1, 30, 3, 1, key="v3fl")
+    v7, v8 = st.columns(2)
+    v_use = v7.selectbox("Use", ["residential", "commercial"], key="v3use")
+    v_built = v8.number_input("Proposed built-up sqm (FAR check, 0 = skip)", 0.0, 100000.0, 0.0, 10.0, key="v3b")
     req_f, req_r = front_open_space(v_road), rear_open_space(v_plot)
     checks = check_proposal(plot_sqm=v_plot, road_m=v_road, front_m=v_front, rear_m=v_rear,
-                            height_m=v_height, floors=v_floors)
+                            height_m=v_height, floors=v_floors, use=v_use,
+                            builtup_sqm=(v_built or None), plot_for_far=(v_plot if v_built else None))
     status, msg = verdict(checks)
     if status == "pass":
         st.success(msg)
