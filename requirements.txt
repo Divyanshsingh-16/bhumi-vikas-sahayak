@@ -5,5 +5,6 @@ openai>=1.30
 python-dotenv>=1.0
 reportlab>=4.0
 pymupdf>=1.23
+streamlit-javascript>=0.1.1  # one-shot mic-to-Python bridge (optional; guided voice loop works without it)
 # Optional: richer Hindi/embedding retrieval
 # sentence-transformers>=2.2  # enable with USE_EMBEDDINGS=1

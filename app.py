@@ -43,6 +43,7 @@ with st.sidebar:
     ui_lang = st.radio("🌐 भाषा / Language", ["English", "हिंदी"], horizontal=True)
     UL = "hi" if ui_lang == "हिंदी" else "en"
     kiosk = st.toggle("Kiosk mode (large text + contrast)", value=False)
+    auto_say = st.toggle("🔊 Jawab bolkar sunao (auto-speak)", value=False)
     show_evidence = st.toggle("Show PDF evidence", value=True)
     show_diagram = st.toggle("Show plot diagram", value=True)
     st.divider()
@@ -72,6 +73,12 @@ tab_chat, tab_bot, tab_3d, tab_case, tab_forms, tab_eval = st.tabs(
 with tab_bot:
     st.subheader("🤖 Sahayak — guided, no typing needed")
     st.caption("Tap quick replies or type numbers. Speaks Hindi + English.")
+    from avatar import show_avatar
+    show_avatar(state="idle", label="सहायक", key="botav")
+    with st.expander("🎙️ Person-like voice Sahayak (hands-free — bolo, jawab suno)", expanded=False):
+        st.caption("Start dabao → Hindi/English me bolo → Sahayak bolkar jawab dega → mic khud wapas sunega. Mic ke liye internet chahiye; text hamesha saath hai.")
+        from voice_loop import guided_voice_bot
+        guided_voice_bot()
     from bot import bot_reply, QUICK_PLOTS
     if "bot_state" not in st.session_state:
         st.session_state.bot_state = {"step": "greet", "lang": "en"}
@@ -95,9 +102,14 @@ with tab_bot:
         st.session_state.bot_hist.append(("user", bq))
         rep, st.session_state.bot_state, done = bot_reply(dict(st.session_state.bot_state), bq)
         st.session_state.bot_hist.append(("bot", rep))
+        from voice_loop import say_on_render
+        from llm import is_hindi as _ish
+        say_on_render(rep, "hi" if _ish(bq + rep) else "en",
+                      auto=st.session_state.get("bot_autosay", False))
         if done:
             st.session_state.bot_state = {"step": "greet", "lang": st.session_state.bot_state.get("lang", "en")}
         st.rerun()
+    st.toggle("🔊 Bot jawab bolkar de (auto-speak)", value=False, key="bot_autosay")
 
 with tab_3d:
     st.subheader("🏙️ 3D plot + building (drag to rotate)")
@@ -292,6 +304,9 @@ with tab_chat:
                         f'border:1px solid {conf_color}">{CONF_ICON.get(conf, "⚪")} {conf}</span>',
                         unsafe_allow_html=True)
             speak_button(res["answer"], lang, f"sp{idx}")
+            if auto_say:
+                from voice_loop import say_on_render as _say
+                _say(res["answer"], lang, auto=True)
             ent = res.get("entities") or {}
             if ent.get("needs") and not res.get("calc"):
                 st.warning(f"❓ {'Aur jaankari dein' if hi else 'Need one more detail'}: {ent['needs']}")
