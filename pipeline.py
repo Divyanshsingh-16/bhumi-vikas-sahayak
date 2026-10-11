@@ -4,7 +4,7 @@ from parse_query import parse_hint
 from patch_2026 import NOT_FOUND_EN, NOT_FOUND_HI, PATCH_NOTE_EN, PATCH_NOTE_HI
 from rag import RuleRetriever, short_quote
 from llm import answer_query, is_hindi
-from templates import template_answer
+from templates import template_answer, SECONDARY, CITIZEN, FOLLOWUPS
 
 NOT_FOUND_THRESHOLD = 0.08
 _retriever = None
@@ -47,9 +47,21 @@ def pipeline(query: str, top_k: int = 3):
     # 3. grounded answer (quote = most query-relevant chunk *within* top rule)
     text, mode = answer_query(query, retrieved, calc)
     # deterministic bilingual headline guarantees numbers + Hindi even offline
-    head = template_answer(calc, "hi" if hi else "en")
-    if head and head not in text:
-        text = head + "\n" + text
+    lang = "hi" if hi else "en"
+    head = template_answer(calc, lang)
+    parts = []
+    if head:
+        parts.append(head)
+    if calc and calc.get("kind") in SECONDARY:
+        parts.append("➕ " + SECONDARY[calc["kind"]][lang])
+    if calc and calc.get("kind") in CITIZEN:
+        parts.append("🗣️ " + CITIZEN[calc["kind"]][lang])
+    if not parts:
+        parts.append("नियम में लिखा है:" if hi else "The rules say:")
+    extra = "\n".join(parts)
+    if extra and extra not in text:
+        text = extra + "\n" + text
+    followups = FOLLOWUPS.get((calc or {}).get("kind", ""), []) if calc else []
     chunk = best
     quote_src = chunk["text"] if isinstance(chunk, dict) and chunk.get("text") else top_rule["text"]
     quote = short_quote(quote_src)
@@ -64,4 +76,4 @@ def pipeline(query: str, top_k: int = 3):
     return {"answer": text, "rule": top_rule["rule"], "pages": (top_rule["page_start"], top_rule["page_end"]),
             "quote": quote, "title": top_rule["title"], "mode": mode, "calc": calc,
             "retrieved": retrieved, "score": top_score, "subref": subref,
-            "entities": parse_hint(query), "confidence": conf}
+            "entities": parse_hint(query), "confidence": conf, "followups": followups}

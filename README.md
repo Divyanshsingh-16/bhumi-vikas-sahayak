@@ -27,7 +27,7 @@ Or with Docker: `docker build -t bhumi-sahayak . && docker run -p 8501:8501 --en
 
 ## Accuracy
 - `python3 eval/run_17.py` (official 17): **17/17 top-3**, incl. 2/2 correctly NOT-FOUND.
-- `python3 eval/run_v2.py` (17 + 36 edge/Hindi/adversarial/source-grounded = 53): **53/53 top-3, 51/53 top-1**.
+- `python3 eval/run_v2.py` (17 + 48 edge/Hindi/paraphrase/source-grounded = 65): **65/65 top-3, 63/65 top-1**.
 - Table spot-checks vs EN PDF: front 9m→3.0 / 10m→3.6 / 20m→6.0 (R56 p.77); rear 40→Nil / 150→1.5 / 225→2.5 / 300→3.0 (R56 p.78); low-voltage 2.5V/1.2H, >33kV 15m corridor (R52 p.69); farmhouse 0.40ha/FAR 0.10/7.5m (R17 p.34); validity 3yr+2×1yr (R23 p.41); lift >12.5m (R83 p.95).
 - See `eval/results.csv`, `eval/results_v2.csv`.
 

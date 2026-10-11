@@ -65,12 +65,12 @@ OOS_PATTERNS = [
 # Deterministic boosts: table-heavy intents must surface the right rule first.
 # (keywords in query -> rule to boost). Fixes jury-critical Q8/Q11/Q13 style misses.
 BOOSTS = [
-    (("fee", "fees", "फीस", "शुल्क"), "21", 0.35),
+    (("fee", "fees", "फीस", "शुल्क", "charges", "cost", "rates"), "21", 0.35),
     (("lift", "लिफ्ट", "escalator"), "83", 0.50),
     (("development permission", "विकास अनुज्ञा"), "12", 0.25),
     (("farm house", "farmhouse", "फार्म"), "17", 0.30),
-    (("rear open", "पीछे"), "56", 0.25),
-    (("front open", "सामने", "आगे"), "56", 0.25),
+    (("rear open", "पीछे", "rear gap"), "56", 0.25),
+    (("front open", "सामने", "आगे", "front gap"), "56", 0.25),
     (("electric", "बिजली", "overhead", "balcony", "बालकनी", "voltage", "वोल्टेज"), "52", 0.30),
     (("valid", "renew", "revalid", "अवधि"), "23", 0.30),
     (("deemed", "deadline", "limitation period"), "28", 0.30),
@@ -83,7 +83,7 @@ BOOSTS = [
     (("side open", "side setback", "बगल"), "56", 0.25),
     (("building line", ), "2", 0.35),
     (("hectare", "convert"), "21", 0.25),
-    (("development plan", "precedence", "disagree"), "103", 0.30),
+    (("development plan", "precedence", "disagree", "conflict", "contradict", "prevail", "wins"), "103", 0.30),
 ]
 HEADER_RE = re.compile(r"Rule\s+\d+[A-Z\-]*\s+M\.P\. Bhumi Vikas Rules,?\s*2012\s+\d+", re.I)
 WS_RE = re.compile(r"\s+")
@@ -95,12 +95,27 @@ def clean_for_search(text: str) -> str:
     return WS_RE.sub(" ", text).strip()
 
 
+EN_SYN = {
+    "gap": "open space setback",
+    "gaps": "open space setback",
+    "charge": "fee", "charges": "fee", "cost": "fee", "rates": "fee",
+    "papers": "documents application", "paperwork": "documents",
+    "mandatory": "required shall provision", "needed": "required",
+    "allowed": "permissible", "allowed?": "permissible",
+}
+
 def expand_hindi(query: str) -> str:
     extra = []
     for hi, en in HI_MAP.items():
         if hi in query:
             extra.append(en)
-    return query + " " + " " .join(extra) if extra else query
+    ql = query.lower()
+    for w, en in EN_SYN.items():
+        if re.search(r"\b" + re.escape(w) + r"\b", ql):
+            extra.append(en)
+    # normalise "10m" -> "10 meters" so table text ("9.0 meters") matches
+    query = re.sub(r"(?<!sq)(\d+(?:\.\d+)?)\s*m\b", r"\1 meters", query, flags=re.I)
+    return query + " " + " ".join(extra) if extra else query
 
 
 class RuleRetriever:

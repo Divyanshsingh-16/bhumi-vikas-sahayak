@@ -340,6 +340,10 @@ with tab_chat:
                 fk = route_form(q)
                 if fk:
                     st.caption(f"📝 Form: {FORMS[fk]['form']} · Fee: {FORMS[fk]['fee']} (see 📜 Amendment + Forms tab for checklist)")
+                for label, fq in (res.get("followups") or []):
+                    if st.button(f"➡️ {label}", key=f"fu{idx}_{label}"):
+                        st.session_state.pending = fq
+                        st.rerun()
                 pdf = slip_pdf_bytes(q, res)
                 if pdf:
                     st.download_button(t("print_pdf", UL), pdf, file_name=f"slip_{idx+1}.pdf",

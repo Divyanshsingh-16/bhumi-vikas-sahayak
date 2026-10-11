@@ -45,6 +45,19 @@ EXTRA = [
     ("E51", "How soon must the building be inspected after plinth notice?", "33"),
     ("E52", "When is occupancy permission deemed to be issued?", "31"),
     ("E53", "150 वर्ग मीटर प्लॉट, तुरंत स्वीकृति मिलेगी?", "12"),
+    # paraphrase robustness round (reworded citizen phrasing)
+    ("P54", "Front gap for 10m road?", "56"),
+    ("P55", "Rear gap for 200 sqm plot?", "56"),
+    ("P56", "Permission validity period?", "23"),
+    ("P57", "Deemed approval if no response?", "28"),
+    ("P58", "Balcony distance from power line?", "52"),
+    ("P59", "Farmhouse plot minimum?", "17"),
+    ("P60", "Plans signed by whom?", "18"),
+    ("P61", "Permission papers needed?", "14"),
+    ("P62", "House construction charges?", "21"),
+    ("P63", "Modify sanctioned design allowed?", "24"),
+    ("P64", "Plan vs rules conflict which wins?", "103"),
+    ("P65", "Lift mandatory above what height?", "83"),
 ]
 
 def main():

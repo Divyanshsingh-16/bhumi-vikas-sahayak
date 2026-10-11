@@ -69,18 +69,12 @@ def call_cerebras(system: str, user: str) -> str | None:
         return None
 
 def offline_answer(query, retrieved, calc) -> str:
-    """Extractive fallback when no LLM key/API: template headline + citation."""
+    """Extractive fallback: citation only — pipeline adds headline/secondary/citizen."""
     from rag import short_quote
-    from templates import template_answer
-    hi = is_hindi(query)
-    head = template_answer(calc, "hi" if hi else "en")
     r, _ = retrieved[0]
     chunk = r.get("_chunk")
     quote = short_quote(chunk["text"] if chunk else r["text"])
-    if head:
-        return f"{head}\nRule: {r['rule']} | Pages: {r['page_start']}-{r['page_end']}\nQuote: \"{quote}\""
-    lead = "नियम में लिखा है:" if hi else "The rules say:"
-    return f"{lead}\nRule: {r['rule']} | Pages: {r['page_start']}-{r['page_end']}\nQuote: \"{quote}\""
+    return (f"Rule: {r['rule']} | Pages: {r['page_start']}-{r['page_end']}\nQuote: \"{quote}\"")
 
 def answer_query(query, retrieved, calc):
     user = build_user_prompt(query, retrieved, calc)

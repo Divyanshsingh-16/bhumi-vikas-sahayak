@@ -79,6 +79,87 @@ TEMPLATES = {
         "en": "Side open space: detached 3 m both sides (if frontage <12 m and height ≤7 m: 3 m + 1.5 m); semi-detached 3 m one side (2.5 m if frontage ≤10 m, height ≤10 m); row-type nil (Rule 56(3), PDF p.78).",
         "hi": "बगल की खुली जगह: पृथक भवन दोनों ओर 3 मी (अग्रभाग <12 मी व ऊंचाई ≤7 मी: 3 मी + 1.5 मी); अर्ध-पृथक एक ओर 3 मी; पंक्ति भवन शून्य (नियम 56(3), PDF पृ.78)।",
     },
+    "plot300": {
+        "en": "Verdict: under the March-2025 rules, a 300 sq m plot in an approved layout could use an authorised Architect/Structural Engineer (Rule 6(3)) or standard plans (Rule 21(4)) — BUT the 28-08-2026 amendment to Rule 2(5)(c) changed plots up to 500 sq m. Do NOT decide on old rules alone; confirm the August-2026 position with the Authority.",
+        "hi": "निर्णय: मार्च-2025 नियमों में 300 वर्ग मीटर प्लॉट हेतु अधिकृत आर्किटेक्ट (नियम 6(3)) या मानक योजना (नियम 21(4)) का रास्ता था — पर 28-08-2026 संशोधन (नियम 2(5)(c), 500 वर्ग मीटर तक) के बाद पुराने नियमों पर निर्णय न लें; प्राधिकारी से अगस्त-2026 स्थिति जांचें।",
+    },
+}
+
+# Second-rule synthesis: shown right after the headline (EN+HI same-language pick).
+SECONDARY = {
+    "deemed": {
+        "en": "Exception: delay at an authorised Architect/Structural Engineer is NOT deemed sanction (Rule 28 proviso).",
+        "hi": "अपवाद: अधिकृत आर्किटेक्ट/इंजीनियर की देरी मानित स्वीकृति नहीं (नियम 28 परंतुक)।",
+    },
+    "sign": {
+        "en": "Size limits: Structural Engineer ≤500 sq m/3 storeys, Engineer ≤300 sq m/2 storeys, Supervisor ≤200 sq m/2 storeys (Rule 26(9)).",
+        "hi": "सीमा: स्ट्रक्चरल इंजीनियर ≤500 वर्ग मीटर/3 मंजिल, इंजीनियर ≤300/2, सुपरवाइजर ≤200/2 (नियम 26(9))।",
+    },
+    "documents": {
+        "en": "Tip: earthquake-area certificates (A-3 to A-11) ride along where applicable (Rule 15).",
+        "hi": "सुझाव: भूकंप क्षेत्र प्रमाणपत्र (A-3 से A-11) लागू हो तो साथ लगेंगे (नियम 15)।",
+    },
+    "plan_change": {
+        "en": "Related: alteration needs only the affected plans (Rule 19).",
+        "hi": "संबंधित: परिवर्तन हेतु केवल प्रभावित योजना चाहिए (नियम 19)।",
+    },
+    "validity": {
+        "en": "Fee note: revalidation after expiry costs the Rule 21(3)(a) fee; before expiry it is free (Rule 23).",
+        "hi": "शुल्क: समाप्ति के बाद नवीनीकरण पर नियम 21(3)(a) शुल्क; पहले निःशुल्क (नियम 23)।",
+    },
+    "front_setback": {
+        "en": "Also check: side gaps (Rule 56(3)) and projections like balcony ≤1.2 m (Rule 58).",
+        "hi": "साथ देखें: बगल की जगह (नियम 56(3)) व बालकनी ≤1.2 मी (नियम 58)।",
+    },
+    "rear_setback": {
+        "en": "Also check: side gaps (Rule 56(3)) and projections like balcony ≤1.2 m (Rule 58).",
+        "hi": "साथ देखें: बगल की जगह (नियम 56(3)) व बालकनी ≤1.2 मी (नियम 58)।",
+    },
+}
+
+# One plain citizen-facing line per kind (simpler than the clerk headline).
+CITIZEN = {
+    "front_setback": {"en": "Tell the citizen: leave this much gap in front, it is part of your plot.",
+                      "hi": "नागरिक से कहें: सामने इतनी जगह छोड़नी है, यह आपके प्लॉट का हिस्सा है।"},
+    "rear_setback": {"en": "Tell the citizen: leave this much gap at the back.",
+                     "hi": "नागरिक से कहें: पीछे इतनी जगह छोड़नी है।"},
+    "electric": {"en": "Tell the citizen: keep the balcony this far from the wire, for safety.",
+                 "hi": "नागरिक से कहें: सुरक्षा हेतु बालकनी तार से इतनी दूर रखें।"},
+    "farmhouse": {"en": "Tell the citizen: farmhouse needs a big plot with 100 trees per hectare first.",
+                  "hi": "नागरिक से कहें: फार्म हाउस हेतु बड़ा प्लॉट व पहले 100 पेड़/हेक्टेयर चाहिए।"},
+    "validity": {"en": "Tell the citizen: start work in time or renew before 3 years end.",
+                 "hi": "नागरिक से कहें: समय पर कार्य शुरू करें या 3 साल से पहले नवीनीकरण कराएं।"},
+    "lift": {"en": "Tell the citizen: a lift is compulsory above 12.5 m height.",
+             "hi": "नागरिक से कहें: 12.5 मीटर से ऊपर लिफ्ट अनिवार्य है।"},
+    "instant": {"en": "Tell the citizen: your application itself becomes the approval — but any violation cancels it.",
+                "hi": "नागरिक से कहें: आपका आवेदन ही स्वीकृति है — पर उल्लंघन पर निरस्त हो जाएगी।"},
+    "standard_plan": {"en": "Tell the citizen: pick a ready-made approved design and the receipt is your permission.",
+                      "hi": "नागरिक से कहें: तैयार स्वीकृत डिज़ाइन चुनें, रसीद ही अनुमति है।"},
+    "competence": {"en": "Tell the citizen: only the listed professional may sign for this size.",
+                   "hi": "नागरिक से कहें: इस आकार हेतु केवल सूचीबद्ध पेशेवर हस्ताक्षर कर सकता है।"},
+    "occupancy": {"en": "Tell the citizen: do not occupy before the E-4 permission.",
+                  "hi": "नागरिक से कहें: E-4 अनुमति से पहले रहना शुरू न करें।"},
+    "plot300": {"en": "Tell the citizen: rules changed in August 2026 — the counter will confirm the latest position.",
+                "hi": "नागरिक से कहें: अगस्त 2026 में नियम बदले — काउंटर नवीनतम स्थिति बताएगा।"},
+}
+
+# Follow-up chips per kind: (button label, query to ask).
+FOLLOWUPS = {
+    "front_setback": [("Rear gap?", "What is the rear open space for this plot?"),
+                      ("Fee?", "What is the building permission fee?")],
+    "rear_setback": [("Front gap?", "What is the front open space for this plot?"),
+                     ("Fee?", "What is the building permission fee?")],
+    "fee": [("Validity?", "How long does building permission stay valid?")],
+    "validity": [("Revalidation fee?", "Revalidation fee for building permission?")],
+    "electric": [("Projection rules?", "What projections are allowed in open spaces?")],
+    "instant": [("Validity?", "How long does building permission stay valid?"),
+                ("Standard plan?", "Can I use a standard plan?")],
+    "standard_plan": [("Instant approval?", "Can I get instant approval?")],
+    "documents": [("Who signs?", "Who is allowed to sign my building plans?")],
+    "sign": [("Competence limits?", "Who can sign plans for a 250 sq m 2-storey house?")],
+    "plan_change": [("Documents?", "What documents go with an application for building permission?")],
+    "plot300": [("Standard plan?", "Can I use a standard plan?"),
+                ("Instant approval?", "Can I get instant approval?")],
 }
 
 

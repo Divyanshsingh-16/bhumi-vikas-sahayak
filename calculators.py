@@ -141,6 +141,9 @@ def detect_calculation(query: str):
         return {"kind": "deemed", "rule": "28"}
     if "development plan" in q and any(k in q for k in ["disagree", "precedence", "contrary", "differ", "against"]):
         return {"kind": "precedence", "rule": "103"}
+    # --- Q11-type: 300 sqm + development permission + plan match (Aug-2026 verdict) ---
+    if "300" in q and "development permission" in q:
+        return {"kind": "plot300", "rule": "12"}
     # --- Rule 12-A: instant/deemed approval (residential <=186 sqm, June 2024) ---
     if any(k in q for k in ["instant", "deemed approval", "deemed building", "186", "turant", "तुरंत"]):
         return {"kind": "instant", "rule": "12"}
