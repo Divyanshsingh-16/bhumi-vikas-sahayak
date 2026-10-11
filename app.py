@@ -293,6 +293,22 @@ with tab_eval:
             st.caption("No counter log yet — it builds as the clerk asks.")
         with st.expander("Per-question scores"):
             st.dataframe(rows, height=300)
+        with st.expander("👎 Feedback review (wrong answers to fix)" if UL == "en" else "👎 सुधार सूची"):
+            votes = st.session_state.get("votes", {})
+            bad = [(i, q) for i, (q, r) in enumerate(st.session_state.get("history", []))
+                   if votes.get(i) == "down"]
+            if bad:
+                for i, q in bad:
+                    st.write(f"#{i+1}: {q[:90]}")
+            else:
+                st.caption("No 👎 yet — good sign.")
+        try:
+            chlog = list(_csv.DictReader(open(LOG_PATH)))
+            if chlog:
+                from collections import Counter as _C2
+                st.bar_chart(dict(_C2(r["rule"] for r in chlog if r["rule"]).most_common(10)))
+        except FileNotFoundError:
+            pass
         with st.expander("📰 Daily digest" if UL == "en" else "📰 दैनिक सार"):
             try:
                 log = list(_csv.DictReader(open(LOG_PATH)))
@@ -351,6 +367,22 @@ with tab_chat:
             with st.spinner(t("searching", UL)):
                 st.session_state.history.append((dq, pipeline(dq)))
         st.rerun()
+
+    mc1, mc2 = st.columns([1, 3])
+    if mc1.button("🎤 Bolo (mic → chat)", key="micchat"):
+        st.session_state["mic_n"] = st.session_state.get("mic_n", 0) + 1
+        st.session_state["mic_wait"] = True
+        st.rerun()
+    if st.session_state.pop("mic_wait", False):
+        from voice_loop import hear_once
+        with st.spinner("🎤 Sun rahe hain… bolo" if UL == "hi" else "🎤 Listening… speak"):
+            heard = hear_once("hi-IN" if UL == "hi" else "en-IN", key=f"hear{st.session_state.get('mic_n', 0)}")
+        if heard and not heard.startswith("__"):
+            st.session_state.pending = heard
+            st.rerun()
+        elif heard:
+            st.warning("Mic nahi chala (Chrome + internet chahiye) — type karo." if UL == "hi"
+                       else "Mic failed (needs Chrome + internet) — please type.")
 
     with st.expander("⚡ Instant answers (no waiting)" if UL == "en" else "⚡ तुरंत उत्तर"):
         from faq import FAQ

@@ -123,6 +123,14 @@ TEMPLATES = {
         "en": "Staircase min width: residential 0.85m; hotel/assembly/other 1.5m; educational or institutional tall blocks 2.0m. Tread ≥25cm (30cm non-residential), riser ≤17cm (15cm others), headroom ≥2.2m (Rule 80, PDF p.93).",
         "hi": "सीढ़ी न्यूनतम चौड़ाई: आवासीय 0.85मी; होटल/सभा/अन्य 1.5मी; ऊंचे शैक्षणिक/संस्थागत 2.0मी। पायदान ≥25सेमी, राइज़र ≤17सेमी, ऊंचाई ≥2.2मी (नियम 80, PDF पृ.93)।",
     },
+    "marriage": {
+        "en": "Marriage garden: town >5 lakh needs 10000 sqm plot, 18m road, 40m frontage, FAR 0.10, 40% parking; smaller towns 4000 sqm, 12m road, 25m frontage, 30% parking; 6m front MOS after parking (Rule 53, PDF p.70-71).",
+        "hi": "मैरिज गार्डन: 5 लाख से बड़े शहर में 10000 वर्ग मी, 18मी सड़क, 40मी अग्रभाग, FAR 0.10, 40% पार्किंग; छोटे शहर 4000, 12मी, 25मी, 30% पार्किंग; पार्किंग के बाद 6मी सामने (नियम 53, PDF पृ.70-71)।",
+    },
+    "multiplex": {
+        "en": "Multiplex plot: up to 300 seats →1200 sqm (1500 with shopping); up to 500 seats →2000 (2500); more →4 sqm/seat (5 with shopping). Ground coverage 40%, front 12m (Rule 95, PDF p.102-103).",
+        "hi": "मल्टीप्लेक्स: 300 सीट तक →1200 वर्ग मी (शॉपिंग सहित 1500); 500 तक →2000 (2500); अधिक →4 वर्ग मी/सीट (शॉपिंग 5)। भूतल 40%, सामने 12मी (नियम 95, PDF पृ.102-103)।",
+    },
     "plot300": {
         "en": "Verdict: under the March-2025 rules, a 300 sq m plot in an approved layout could use an authorised Architect (Rule 6(3)) or standard plans (Rule 21(4)) — BUT on 28-08-2026 the Government gazetted a NEW Rule 2(5)(c): plots up to 500 sq m in conformity with the Development Plan need NO development permission (local body permits construction directly). It was published as DRAFT for 15-day objections — confirm final status with the Authority before deciding.",
         "hi": "निर्णय: मार्च-2025 नियमों में 300 वर्ग मीटर हेतु अधिकृत आर्किटेक्ट (नियम 6(3)) या मानक योजना (नियम 21(4)) का रास्ता था — पर 28-08-2026 को शासन ने नया नियम 2(5)(c) राजपत्र में दिया: विकास योजना अनुरूप 500 वर्ग मीटर तक के प्लॉट पर विकास अनुमति ज़रूरी नहीं। यह प्रारूप (15 दिन आपत्ति हेतु) था — निर्णय से पहले अंतिम स्थिति जांचें।",
@@ -207,6 +215,10 @@ CITIZEN = {
                "hi": "नागरिक से कहें: टंकी पेयजल से दूर रखें।"},
     "stair": {"en": "Tell the citizen: stairs must be wide enough for safe exit.",
               "hi": "नागरिक से कहें: सुरक्षित निकास हेतु सीढ़ी पर्याप्त चौड़ी हो।"},
+    "marriage": {"en": "Tell the citizen: bigger towns need bigger marriage-garden plots.",
+                 "hi": "नागरिक से कहें: बड़े शहर में बड़ा मैरिज-गार्डन प्लॉट चाहिए।"},
+    "multiplex": {"en": "Tell the citizen: more seats need a bigger plot.",
+                  "hi": "नागरिक से कहें: अधिक सीटों हेतु बड़ा प्लॉट चाहिए।"},
 }
 
 # Follow-up chips per kind: (button label, query to ask).
@@ -238,6 +250,8 @@ FOLLOWUPS = {
     "site": [("Documents?", "What documents go with an application for building permission?")],
     "septic": [("Drainage rules?", "What are the drainage and sanitation requirements?")],
     "stair": [("Lift rule?", "Is a lift needed for a 13 m tall building?")],
+    "marriage": [("Farmhouse?", "What are the farmhouse rules?")],
+    "multiplex": [("Cinema fee?", "What is the fee for a cinema theatre?")],
     "plantation": [("Occupancy?", "When is occupancy permission issued?")],
 }
 

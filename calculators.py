@@ -197,6 +197,14 @@ def detect_calculation(query: str):
     # --- staircase (Rule 80) ---
     if any(k in q for k in ["staircase", "stairs", "stair", "सीढ़ी"]):
         return {"kind": "stair", "rule": "80"}
+    # --- marriage garden (Rule 53) ---
+    if any(k in q for k in ["marriage garden", "marriage hall", "mangal karyalaya",
+                            "मैरिज", "शादी", "विवाह"]):
+        return {"kind": "marriage", "rule": "53"}
+    # --- multiplex / cinema (Rules 95, 21); fee questions stay with Rule 21 ---
+    if any(k in q for k in ["multiplex", "cinema", "theatre", "theater", "सिनेमा", "मल्टीप्लेक्स"]) and \
+            not any(k in q for k in ["fee", "fees", "फीस", "शुल्क", "charges"]):
+        return {"kind": "multiplex", "rule": "95"}
     return None
 
 
@@ -432,3 +440,23 @@ def stair_width(building: str = "residential", tall: bool = False) -> float:
                            "hotel" if "hotel" in b else
                            "assembly" if any(k in b for k in ("cinema", "theatre", "assembly", "mall")) else "other",
                            1.5)
+
+
+# --- Rule 53(iii): marriage garden norms by town population (PDF p.70-71) ---
+def marriage_garden_norms(population_lakh: float | None = None):
+    """Return norms dict. >5 lakh: 10000 sqm/18m road/40m frontage; else 4000/12m/25m."""
+    big = population_lakh is not None and population_lakh > 5
+    return {"plot": 10000 if big else 4000, "road": 18 if big else 12,
+            "frontage": 40 if big else 25, "far": 0.10, "coverage": "10%",
+            "parking": "40% of plot" if big else "30% of plot",
+            "mos_front": "6.0 m after parking"}
+
+
+# --- Rule 95: multiplex plot area by seats (PDF p.102-103) ---
+def multiplex_plot(seats: int, shopping: bool = False):
+    """Min plot: <=300 seats 1200 (1500 w/ shopping); <=500 seats 2000 (2500); above @4-5 sqm/seat."""
+    if seats <= 300:
+        return 1500 if shopping else 1200
+    if seats <= 500:
+        return 2500 if shopping else 2000
+    return seats * (5 if shopping else 4)

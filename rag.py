@@ -107,6 +107,8 @@ BOOSTS = [
     (("water body", "talab", "river", "lake", "नदी", "flood"), "50", 0.30),
     (("septic", "soak pit", "सेप्टिक"), "79", 0.35),
     (("staircase", "stairs", "stair", "सीढ़ी"), "80", 0.35),
+    (("marriage garden", "marriage hall", "मैरिज", "शादी"), "53", 0.35),
+    (("multiplex", "cinema", "theatre", "सिनेमा"), "95", 0.35),
     (("building line", ), "2", 0.35),
     (("hectare", "convert"), "21", 0.25),
     (("development plan", "precedence", "disagree", "conflict", "contradict", "prevail", "wins"), "103", 0.30),

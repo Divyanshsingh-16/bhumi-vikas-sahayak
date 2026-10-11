@@ -75,6 +75,11 @@ EXTRA = [
     ("N78", "Septic tank distance from drinking water?", "79"),
     ("N79", "Minimum staircase width for a house?", "80"),
     ("N80", "सीढ़ी कितनी चौड़ी हो?", "80"),
+    # source-grounded round 6 (Rules 53, 95)
+    ("N81", "Marriage garden plot size in a big city?", "53"),
+    ("N82", "Multiplex plot for 400 seats?", "95"),
+    ("N83", "What is the fee for a cinema theatre?", "21"),
+    ("N84", "मैरिज गार्डन कितना बड़ा प्लॉट?", "53"),
 ]
 
 def main():
