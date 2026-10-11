@@ -34,6 +34,9 @@ def building_3d_html(plot_w=12.0, plot_d=20.0, front=3.0, rear=1.5, side=1.5,
 <button onclick="window['{uid}_rot']()">🔄 Auto-rotate</button>
 <button onclick="window['{uid}_far']()">📦 FAR envelope</button>
 <button onclick="window['{uid}_morph']()">⚖️ Required vs proposed</button>
+<button onclick="window['{uid}_xray']()">🔍 X-ray andar dekho</button>
+<label style="font-size:12px">पारदर्शिता <input type="range" id="{uid}_op" min="10" max="100" value="100"
+ style="width:110px;vertical-align:middle" oninput="window['{uid}_opaque'](this.value)"></label>
 </div>
 <div id="{uid}_info" style="font-size:13px;background:#E8F5E9;border-radius:6px;padding:6px 10px;min-height:22px"></div>
 {IMPORTMAP}
@@ -155,6 +158,51 @@ const fl = label(L.front+' '+cfg.front+'m'); fl.position.set(-PW/2-4.5, 1.6, -PD
 const rl2 = label(L.rear+' '+(cfg.rear||0)+'m'); rl2.position.set(PW/2+4.5, 1.6, PD/2-(cfg.rear||0)*S/2); scene.add(rl2);
 const sl = label(L.side+' '+cfg.side+'m', 0.85); sl.position.set(-PW/2+cfg.side*S/2, 1.4, bz); scene.add(sl);
 const bl = label(L.build+' '+cfg.height+'m/'+cfg.floors+'F'); bl.position.set(0, 0.5+bh+2.2, bz); scene.add(bl);
+// ---- interior (hidden inside solid box; seen in X-ray) ----
+const inter = new THREE.Group(); inter.visible = false; scene.add(inter);
+const slabM = new THREE.MeshStandardMaterial({{color:0x90a4ae, roughness:0.7}});
+for(let f=1; f<=cfg.floors; f++){{
+  const y = 0.5 + bh*f/cfg.floors;
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(bw-0.15, 0.12, bd-0.15), slabM);
+  slab.position.set(0, y, bz); inter.add(slab);
+}}
+// staircase: stacked steps in one corner, all floors
+const stairM = new THREE.MeshStandardMaterial({{color:0xffb74d, roughness:0.7}});
+const stW = Math.min(2.2, bw*0.28), stD = Math.min(3.2, bd*0.35);
+for(let f=0; f<cfg.floors; f++){{
+  const y0 = 0.5 + bh*f/cfg.floors, fh = bh/cfg.floors;
+  for(let s=0; s<6; s++){{
+    const st = new THREE.Mesh(new THREE.BoxGeometry(stW, 0.12, stD/6), stairM);
+    st.position.set(-bw/2+stW/2+0.3, y0+0.2+(fh-0.4)*(s+1)/6, bz-bd/2+stD/2+0.3);
+    inter.add(st);
+  }}
+}}
+// lift shaft above 12.5 m (Rule 83)
+if(cfg.height > 12.5){{
+  const shaft = new THREE.Mesh(new THREE.BoxGeometry(1.6, bh, 1.6),
+    new THREE.MeshStandardMaterial({{color:0x64b5f6, roughness:0.5, transparent:true, opacity:0.85}}));
+  shaft.position.set(bw/2-1.4, 0.5+bh/2, bz); inter.add(shaft);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 1.0),
+    new THREE.MeshStandardMaterial({{color:0x0d47a1}}));
+  cab.position.set(bw/2-1.4, 1.4, bz); cab.name='liftcab'; inter.add(cab);
+}}
+// X-ray toggle + opacity slider
+let xray = false;
+function setOpaque(pct){{
+  const o = Math.max(0.08, Math.min(1, pct/100));
+  bmat.transparent = o < 1; bmat.opacity = o; bmat.needsUpdate = true;
+  inter.visible = o < 0.99;
+  const sl = document.getElementById('{uid}_op'); if(sl) sl.value = Math.round(o*100);
+}}
+function toggleXray(){{
+  xray = !xray;
+  setOpaque(xray ? 22 : 100);
+  info.innerHTML = xray
+    ? ('🔍 ' + (cfg.lang==='hi' ? 'X-ray: andar slab, seedhi' + (cfg.height>12.5?', lift shaft':'') + ' dikh rahe hain' : 'X-ray: slabs, staircase' + (cfg.height>12.5?', lift shaft':'') + ' visible inside'))
+    : ('🔍 ' + (cfg.lang==='hi' ? 'Bahari roop' : 'Exterior view'));
+}}
+window['{uid}_xray'] = toggleXray;
+window['{uid}_opaque'] = setOpaque;
 // FAR max envelope (wireframe), toggled
 let env = null;
 function toggleEnv(){{
@@ -205,6 +253,8 @@ let t0 = 0;
 (function anim(t){{
   requestAnimationFrame(anim);
   if(bad){{ bmat.emissiveIntensity = 0.35 + 0.3*Math.abs(Math.sin(t*0.004)); }}
+  const cab = inter.getObjectByName('liftcab');
+  if(cab && inter.visible){{ cab.position.y = 1.4 + (bh-2.4)*(0.5+0.5*Math.sin(t*0.001)); }}
   ctl.update(); renderer.render(scene, camera);
 }})(0);
 }})();
