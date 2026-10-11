@@ -55,10 +55,26 @@ def building_fee(builtup_sqm: float, commercial: bool = False) -> int:
 # --- number extraction helpers ---
 NUM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(m\b|meter|metre|sq\s?m|sqm|sq\.?\s?m|sqm\.|hectare|ha)?", re.I)
 
+# Roman-Hindi citizen phrasing -> search keywords (lightweight, no transliteration lib needed)
+ROMAN_HI = {
+    "peeche": "पीछे rear", "piche": "पीछे rear", "peechhe": "पीछे rear",
+    "aage": "आगे front", "saamne": "सामने front", "samne": "सामने front",
+    "jagah": "जगह open space", "doori": "दूरी distance", "kitni": "कितनी",
+    "kitna": "कितना", "kitne": "कितने", "sadak": "सड़क road", "gali": "गली street",
+    "makaan": "मकान house", "zameen": "plot land", "jameen": "plot land",
+    "manzil": "मंजिल floor", "upar": "ऊपर", "bada": "बड़ा", "chhota": "छोटा",
+}
+
+def roman_hint(query: str) -> str:
+    ql = " " + query.lower() + " "
+    for w, rep in ROMAN_HI.items():
+        ql = re.sub(r"\b" + re.escape(w) + r"\b", rep, ql)
+    return ql
+
 def extract_numbers(query: str):
     """Return dict with road_width_m, plot_area_sqm, height_m, builtup_sqm (best effort)."""
-    # normalise Hindi units so regexes work
-    q = query.replace("वर्ग मीटर", "sqm").replace("वर्गमीटर", "sqm").replace("मीटर", "m").replace("मी\udb40\udc00", "m")
+    # normalise Hindi + roman-Hindi units so regexes work
+    q = roman_hint(query).replace("वर्ग मीटर", "sqm").replace("वर्गमीटर", "sqm").replace("मीटर", "m").replace("मी\udb40\udc00", "m")
     out = {}
     # explicit patterns first
     m = re.search(r"(\d+(?:\.\d+)?)\s*m\b.*(?:road|street|street|सड़क)", q, re.I) or \
@@ -85,7 +101,7 @@ def extract_numbers(query: str):
 
 def detect_calculation(query: str):
     """If query maps to a deterministic table, return {kind, ...} else None."""
-    q = query.lower()
+    q = roman_hint(query)
     nums = extract_numbers(query)
     if any(k in q for k in ["front", "सामने", "आगे", "front open"]):
         if "area_sqm" in nums or "road_width_m" in nums:
@@ -109,6 +125,11 @@ def detect_calculation(query: str):
     if any(k in q for k in ["valid", "renew", "revalid", "अवधि", "नवीनीकरण", "how long"]):
         return {"kind": "validity", "rule": "23",
                 "valid": "3 years", "renewal": "2 x 1 year, then fresh proposal (max 5 years)"}
+    # --- licence/qualification beats lift-provision (Rule 26 vs 83) ---
+    # "licence number on plans" is a Rule 18 signing formality, not Rule 26
+    if any(k in q for k in ["licence", "license", "qualification", "योग्यता", "eligibility"]) and \
+            not ("number" in q and any(k in q for k in ["sign", "plan", "submit"])):
+        return {"kind": "licence", "rule": "26"}
     if "lift" in q or "लिफ्ट" in q or "escalator" in q:
         return {"kind": "lift", "rule": "83",
                 "note": "Provision for lifts required above 12.5 m height (NBC Part-VIII Sec-5); details in Appendix A-2(A)"}
@@ -182,6 +203,10 @@ def detect_calculation(query: str):
     # --- route wizard ---
     if any(k in q for k in ["rasta", "kaunsa", "konsa", "which route", "best option", "fastest"]):
         return {"kind": "route", "rule": "12"}
+    # --- fee asked without measurements: slab summary (Rule 21) ---
+    if any(k in q for k in ["fee", "fees", "फीस", "शुल्क", "charges", "cost"]) and \
+            not re.search(r"\d", q):
+        return {"kind": "fee_info", "rule": "21"}
     # --- layout access roads (Rule 38) ---
     if any(k in q for k in ["means of access", "access road", "approach road", "colony road",
                             "colony", "sub-division", "subdivision"]):

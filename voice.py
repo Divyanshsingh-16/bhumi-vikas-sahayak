@@ -37,11 +37,27 @@ document.getElementById('vcopy').onclick = ()=>{ try{ navigator.clipboard.writeT
     )
 
 
+def _tts_settings_js() -> str:
+    return ("var __r = (window.__tts && window.__tts.rate) || 0.95;"
+            "var __v = (window.__tts && window.__tts.voice) || '';")
+
+def tts_settings_box(rate: float = 0.95, voice: str = ""):
+    """Push speed/voice choice to the page so every speak uses it."""
+    import json as _json
+    components.html(
+        f"""<script>window.__tts = {{rate: {float(rate)}, voice: {_json.dumps(voice or '')}}};</script>""",
+        height=0,
+    )
+
+
 def speak_button(text: str, lang: str, key: str):
     safe = html.escape(text[:300]).replace("\n", " ")
     voice = "hi-IN" if lang == "hi" else "en-IN"
     components.html(
-        f"""<button onclick="speechSynthesis.cancel();var u=new SpeechSynthesisUtterance('{safe}');u.lang='{voice}';speechSynthesis.speak(u);"
+        f"""<button onclick="speechSynthesis.cancel();{_tts_settings_js()}
+var u=new SpeechSynthesisUtterance('{safe}');u.lang='{voice}';u.rate=__r;
+try{{var vs=speechSynthesis.getVoices();var m=vs.find(v=>v.name.toLowerCase().indexOf(__v.toLowerCase())>=0&&__v);if(m)u.voice=m;}}catch(e){{}}
+speechSynthesis.speak(u);"
 style="font-size:14px">🔊 Suno / Listen</button>""",
         height=45,
     )

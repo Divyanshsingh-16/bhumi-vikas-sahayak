@@ -7,8 +7,16 @@ TEMPLATES = {
         "en": "Front open space: {value} m (road {road} m wide). Rule 56(1)(a), PDF p.77.",
         "hi": "सामने की खुली जगह: {value} मीटर (सड़क {road} मीटर चौड़ी)। नियम 56(1)(a), PDF पृ.77।",
     },
+    "fee_info": {
+        "en": "Residential slabs (Rule 21): ≤75 sqm→Rs 750; 76-125→Rs 1,250; 126-200→Rs 2,000; 201-300→Rs 3,000; 301-400→Rs 4,000; 401-600→Rs 6,000; above 2500→Rs 50,000. Shops/commercial +50%. Tell built-up sqm for exact fee.",
+        "hi": "आवासीय स्लैब (नियम 21): ≤75 वर्ग मी→₹750; 76-125→₹1,250; 126-200→₹2,000; 201-300→₹3,000; 301-400→₹4,000; 401-600→₹6,000; 2500 से ऊपर→₹50,000। दुकान +50%। सटीक शुल्क हेतु निर्मित क्षेत्र बताएं।",
+    },
+    "licence": {
+        "en": "Licence qualifications (Rule 26): Structural Engineer — Civil graduate + 3 yrs experience; Engineer — corporate membership/diploma; Supervisor — assistantship/diploma + experience; Lift Engineer — Electrical/Mechanical graduate + 5 yrs. Licence valid 3 years, renewable (fee Rs 1500/750).",
+        "hi": "लाइसेंस योग्यता (नियम 26): स्ट्रक्चरल इंजीनियर — सिविल स्नातक + 3 साल अनुभव; इंजीनियर — सदस्यता/डिप्लोमा; सुपरवाइजर — सहायक/डिप्लोमा + अनुभव; लिफ्ट इंजीनियर — इलेक्ट्रिकल/मैकेनिकल + 5 साल। लाइसेंस 3 साल, नवीकरणीय (शुल्क ₹1500/750)।",
+    },
     "rear_setback": {
-        "en": "Rear open space: {value} m ({nil}for {area} sq m plot). Rule 56(2)(a), PDF p.78.",
+        "en": "Rear open space: {value} ({nil}for {area} sq m plot). Rule 56(2)(a), PDF p.78.",
         "hi": "पीछे की खुली जगह: {value} मीटर ({area} वर्ग मीटर प्लॉट)। नियम 56(2)(a), PDF पृ.78।",
     },
     "electric": {
@@ -203,6 +211,10 @@ CITIZEN = {
                       "hi": "नागरिक से कहें: ऊंची इमारत हेतु बड़ी सड़क व बड़ा प्लॉट चाहिए।"},
     "deadline": {"en": "Tell the citizen: note every date — delays can auto-decide the case.",
                  "hi": "नागरिक से कहें: हर तारीख नोट करें — देरी स्वतः निर्णय करा सकती है।"},
+    "fee_info": {"en": "Tell the citizen: the bigger the built-up area, the higher the slab.",
+                 "hi": "नागरिक से कहें: निर्मित क्षेत्र जितना बड़ा, स्लैब उतना ऊंचा।"},
+    "licence": {"en": "Tell the citizen: only licensed professionals may sign.",
+                "hi": "नागरिक से कहें: केवल लाइसेंसधारी पेशेवर हस्ताक्षर कर सकते हैं।"},
     "rwh": {"en": "Tell the citizen: harvesting is checked at sanction — arrange it in the plan.",
             "hi": "नागरिक से कहें: संचयन स्वीकृति पर जांचा जाता है — योजना में रखें।"},
     "route": {"en": "Tell the citizen: your plot size decides the fastest legal route.",
@@ -244,6 +256,8 @@ FOLLOWUPS = {
     "highrise_band": [("Lift rule?", "Is a lift needed for a 13 m tall building?"),
                       ("High-rise fee?", "What is the fee for a high-rise residential building?")],
     "deadline": [("Validity?", "How long does building permission stay valid?")],
+    "fee_info": [("Exact fee?", "What is the fee for 150 sqm residential building?")],
+    "licence": [("Who signs?", "Who is allowed to sign my building plans?")],
     "route": [("Instant approval?", "Can I get instant approval?"),
               ("Standard plan?", "Can I use a standard plan?")],
     "layout": [("Development permission?", "Do I need development permission for a layout?")],
@@ -268,8 +282,8 @@ def template_answer(calc: dict, lang: str) -> str | None:
         if calc["kind"] == "front_setback":
             return s.format(value=calc["value_m"], road=calc["road_width_m"])
         if calc["kind"] == "rear_setback":
-            v = "Nil" if calc["value_m"] == 0 else f"{calc['value_m']} m"
-            vh = "शून्य" if calc["value_m"] == 0 else f"{calc['value_m']} मीटर"
+            v = "Nil" if calc["value_m"] == 0 else f"{calc['value_m']}"
+            vh = "शून्य" if calc["value_m"] == 0 else f"{calc['value_m']}"
             return s.format(value=vh if lang == "hi" else v,
                             nil="" if lang == "en" else "",
                             area=calc["plot_area_sqm"])

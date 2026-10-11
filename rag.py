@@ -67,7 +67,7 @@ HI_MAP = {
 
 # Queries that are definitely outside the rulebook -> always "not found".
 OOS_PATTERNS = [
-    r"property\s*tax", r"संपत्ति\s*कर",
+    r"property\s*tax", r"house\s*tax", r"ghar\s*tax", r"संपत्ति\s*कर",
     r"market\s*rate", r"land\s*rate", r"land\s*price", r"भाव", r"बाजार\s*भाव",
     r"kolar", r"कोलार",
     r"pay.*online", r"online.*pay", r"ऑनलाइन.*भुगतान",
@@ -130,6 +130,17 @@ EN_SYN = {
     "papers": "documents application", "paperwork": "documents",
     "mandatory": "required shall provision", "needed": "required",
     "allowed": "permissible", "allowed?": "permissible",
+    # v2: citizen phrasing + measurement words + common variants
+    "setbak": "setback open space", "setback": "open space",
+    "pormission": "permission", "permision": "permission",
+    "kitne": "how much what", "kya": "what which",
+    "saamne": "front", "aage": "front", "peeche": "rear",
+    "jagah": "space open", "doori": "distance",
+    "makaan": "house residential", "ghar": "house residential",
+    "zameen": "land plot", "plot": "plot land site",
+    "manzil": "floor storey", "upar": "above height",
+    "neeche": "below rear", "chhota": "minimum small", "bada": "maximum",
+    "building permission": "building permission sanction Rule",
 }
 
 def expand_hindi(query: str) -> str:
@@ -159,6 +170,25 @@ class RuleRetriever:
         self.docs = [clean_for_search(f"{c['rule']} {c.get('title','')} {c['subref']} {c['text']}") for c in self.chunks]
         self.vec = TfidfVectorizer(ngram_range=(1, 2), stop_words="english", max_features=20000)
         self.mat = self.vec.fit_transform(self.docs)
+        # LSA semantic layer (offline, no downloads): latent topics soften wording gaps
+        try:
+            from sklearn.decomposition import TruncatedSVD
+            from sklearn.preprocessing import Normalizer
+            n = min(200, max(10, self.mat.shape[1] - 1))
+            self._svd = TruncatedSVD(n_components=n, random_state=42)
+            self._norm = Normalizer(copy=False)
+            self.lsa_mat = self._norm.fit_transform(self._svd.fit_transform(self.mat))
+        except Exception:
+            self._svd = None
+            self.lsa_mat = None
+        # char-ngram fuzzy layer (typo tolerance: "pormission", "setbak")
+        try:
+            self.cvec = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5),
+                                        max_features=30000)
+            self.cmat = self.cvec.fit_transform(self.docs)
+        except Exception:
+            self.cvec = None
+            self.cmat = None
         # optional multilingual embeddings (graceful if not installed)
         self.emb_model, self.emb_mat = None, None
         if os.getenv("USE_EMBEDDINGS", "0") == "1":
@@ -180,6 +210,22 @@ class RuleRetriever:
         q = expand_hindi(query)
         qv = self.vec.transform([q])
         sims = cosine_similarity(qv, self.mat)[0].astype(float)
+        # LSA blend (0.70 tfidf / 0.30 lsa): meaning-match without drowning keywords
+        if getattr(self, "_svd", None) is not None and self.lsa_mat is not None:
+            try:
+                ql = self._norm.transform(self._svd.transform(qv))
+                lsims = cosine_similarity(ql, self.lsa_mat)[0]
+                sims = 0.70 * sims + 0.30 * lsims
+            except Exception:
+                pass
+        # char-ngram fuzzy blend (typo tolerance), light weight
+        if getattr(self, "cvec", None) is not None and self.cmat is not None:
+            try:
+                cv = self.cvec.transform([q])
+                csims = cosine_similarity(cv, self.cmat)[0]
+                sims = 0.85 * sims + 0.15 * csims
+            except Exception:
+                pass
         # embedding blend
         if self.emb_model is not None:
             try:

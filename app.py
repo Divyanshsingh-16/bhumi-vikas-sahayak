@@ -67,6 +67,10 @@ with st.sidebar:
     UL = "hi" if ui_lang == "हिंदी" else "en"
     kiosk = st.toggle("Kiosk mode (large text + contrast)", value=False)
     auto_say = st.toggle("🔊 Jawab bolkar sunao (auto-speak)", value=False)
+    tts_rate = st.slider("🗣️ Bolne ki gati (voice speed)", 0.7, 1.3, 0.95, 0.05)
+    tts_voice = st.text_input("🎙️ Voice name (optional, jaise Google हिन्दी)", value="")
+    from voice import tts_settings_box
+    tts_settings_box(tts_rate, tts_voice)
     show_evidence = st.toggle("Show PDF evidence", value=True)
     show_diagram = st.toggle("Show plot diagram", value=True)
     dev_mode = st.toggle("🛠️ Developer details", value=False)
@@ -256,6 +260,12 @@ with tab_forms:
     cur = STEPS[int(st.session_state.get("jstep", 0))]
     st.info(f"**{cur['hi' if UL=='hi' else 'en']}** (Rule {cur['rule']})\n\n{cur['detail_hi' if UL=='hi' else 'detail_en']}")
     st.divider()
+    st.subheader("🔗 Rule map: permission chain" if UL == "en" else "🔗 नियम-श्रृंखला")
+    from flow import flow_svg
+    st.markdown(flow_svg(lang=UL), unsafe_allow_html=True)
+    st.caption("12 permission → 14 apply → 21 fee → 23 validity → 31 occupy" if UL == "en"
+               else "12 अनुमति → 14 आवेदन → 21 शुल्क → 23 वैधता → 31 अधिभोग")
+    st.divider()
     st.subheader("Which form / checklist?")
     fq = st.text_input("Describe the work (e.g. new house, shop alteration, layout, revalidation)")
     if fq:
@@ -297,6 +307,25 @@ with tab_eval:
             st.caption("No counter log yet — it builds as the clerk asks.")
         with st.expander("Per-question scores"):
             st.dataframe(rows, height=300)
+        with st.expander("🏥 System health" if UL == "en" else "🏥 सिस्टम स्थिति"):
+            import os as _os
+            st.write("Claude API:", "✅ key present" if _os.getenv("ANTHROPIC_API_KEY") else "⚪ not set (offline mode)")
+            st.write("Cerebras API:", "✅ key present" if _os.getenv("CEREBRAS_API_KEY") else "⚪ not set (offline mode)")
+            components.html(
+                """<div id="hz" style="font-size:13px">checking…</div><script>
+Promise.all([
+ fetch('https://unpkg.com/three@0.160.0/build/three.module.js',{method:'HEAD',mode:'no-cors'}).then(()=>1).catch(()=>0),
+ fetch('https://www.openstreetmap.org/',{method:'HEAD',mode:'no-cors'}).then(()=>1).catch(()=>0)
+]).then(r=>{document.getElementById('hz').innerHTML =
+ '3D CDN: '+(r[0]?'✅':'❌ offline-2D')+' · Map: '+(r[1]?'✅':'❌')});</script>""",
+                height=40,
+            )
+            from cache import popular as _popular
+            pop = _popular(5)
+            if pop:
+                st.write("🔥 Most asked:")
+                for _q, _r, _c in pop:
+                    st.write(f"×{_c} Rule {_r}: {_q[:60]}")
         with st.expander("👎 Feedback review (wrong answers to fix)" if UL == "en" else "👎 सुधार सूची"):
             votes = st.session_state.get("votes", {})
             bad = [(i, q) for i, (q, r) in enumerate(st.session_state.get("history", []))
@@ -446,6 +475,8 @@ with tab_chat:
             st.markdown(f'<span class="conf-pill" style="background:{conf_color}22;color:{conf_color};'
                         f'border:1px solid {conf_color}">{CONF_ICON.get(conf, "⚪")} {conf}</span>',
                         unsafe_allow_html=True)
+            if res.get("asked", 0) > 1:
+                st.caption(f"🔁 {res['asked']} baar pucha gaya" if hi else f"🔁 asked {res['asked']} times")
             speak_button(res["answer"], lang, f"sp{idx}")
             if auto_say:
                 from voice_loop import say_on_render as _say

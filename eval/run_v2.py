@@ -1,8 +1,10 @@
 """Eval v2: 17 original + 28 edge/Hindi/adversarial. Offline, no LLM key needed."""
 import csv
+import os
 import sys
 from pathlib import Path
 
+os.environ["BHUMI_EVAL"] = "1"
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from pipeline import pipeline
 from run_17 import QUESTIONS as Q17
@@ -80,6 +82,11 @@ EXTRA = [
     ("N82", "Multiplex plot for 400 seats?", "95"),
     ("N83", "What is the fee for a cinema theatre?", "21"),
     ("N84", "मैरिज गार्डन कितना बड़ा प्लॉट?", "53"),
+    # hinglish citizen phrasing (roman Hindi)
+    ("H85", "aage kitni jagah chhodni hai 10m road par?", "56"),
+    ("H86", "peeche kitna gap 200 sqm plot me?", "56"),
+    ("H87", "permission kitne saal valid rehti hai?", "23"),
+    ("H88", "bijli ke taar se balcony kitni door?", "52"),
 ]
 
 def main():

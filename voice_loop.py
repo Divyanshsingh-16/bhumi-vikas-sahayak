@@ -43,7 +43,12 @@ function say(text, next){
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = (lang==='hi' ? 'hi-IN' : 'en-IN'); u.rate = 0.95;
+    u.lang = (lang==='hi' ? 'hi-IN' : 'en-IN');
+    u.rate = (window.__tts && window.__tts.rate) || 0.95;
+    try{const __vw=(window.__tts&&window.__tts.voice)||'';
+      const vs=speechSynthesis.getVoices();
+      const m=vs.find(v=>__vw&&v.name.toLowerCase().indexOf(__vw.toLowerCase())>=0);
+      if(m)u.voice=m;}catch(e){}
     u.onend = ()=>{ setAv('idle'); if(next) next(); };
     u.onerror = ()=>{ setAv('idle'); if(next) next(); };
     speechSynthesis.speak(u);
@@ -123,7 +128,8 @@ def say_on_render(text: str, lang: str, auto: bool = True):
     voice = "hi-IN" if lang == "hi" else "en-IN"
     components.html(
         f"""<script>try{{speechSynthesis.cancel();
-var u=new SpeechSynthesisUtterance('{safe}');u.lang='{voice}';u.rate=0.95;
+var u=new SpeechSynthesisUtterance('{safe}');u.lang='{voice}';
+u.rate=(window.__tts&&window.__tts.rate)||0.95;
 u.onend=()=>{{window.speaking=false;}};window.speaking=true;speechSynthesis.speak(u);}}catch(e){{}}</script>""",
         height=0,
     )

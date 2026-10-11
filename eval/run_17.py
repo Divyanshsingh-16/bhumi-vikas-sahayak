@@ -1,9 +1,11 @@
 """Offline eval over the 17 sample questions. No LLM key needed.
 Checks: retrieved top rule == expected rule (or not-found for 16/17)."""
 import csv
+import os
 import sys
 from pathlib import Path
 
+os.environ["BHUMI_EVAL"] = "1"
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from pipeline import pipeline
 

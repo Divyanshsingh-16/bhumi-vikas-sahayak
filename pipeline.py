@@ -5,6 +5,7 @@ from patch_2026 import NOT_FOUND_EN, NOT_FOUND_HI, PATCH_NOTE_EN, PATCH_NOTE_HI
 from rag import RuleRetriever, short_quote
 from llm import answer_query, is_hindi
 from templates import template_answer, SECONDARY, CITIZEN, FOLLOWUPS
+from cache import store as cache_store
 
 NOT_FOUND_THRESHOLD = 0.08
 _retriever = None
@@ -73,7 +74,10 @@ def pipeline(query: str, top_k: int = 3):
         conf = "medium"
     else:
         conf = "low"
+    import os as _os
+    asked = 0 if _os.getenv("BHUMI_EVAL") else cache_store(query, top_rule["rule"], mode)
     return {"answer": text, "rule": top_rule["rule"], "pages": (top_rule["page_start"], top_rule["page_end"]),
             "quote": quote, "title": top_rule["title"], "mode": mode, "calc": calc,
             "retrieved": retrieved, "score": top_score, "subref": subref,
-            "entities": parse_hint(query), "confidence": conf, "followups": followups}
+            "entities": parse_hint(query), "confidence": conf, "followups": followups,
+            "asked": asked}

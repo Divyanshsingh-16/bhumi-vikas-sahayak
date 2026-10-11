@@ -8,4 +8,7 @@ eval/results.csv
 eval/results_v2.csv
 eval/counter_log.csv
 eval/cases.csv
+eval/votes.csv
+eval/answer_cache.csv
+eval/grade.csv
 pdf_pages/
