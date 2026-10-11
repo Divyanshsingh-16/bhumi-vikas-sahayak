@@ -107,6 +107,22 @@ TEMPLATES = {
         "en": "Which route? Plot ≤186 sqm in approved layout → instant approval (12-A); ≤300 sqm → standard plan (21(4)) or authorised Architect (6(3)); ≤500 sqm → check competence table (26(9)); bigger → full Authority process. Plots ≤500 sqm: confirm Aug-2026 position first.",
         "hi": "कौन-सा रास्ता? ≤186 वर्ग मीटर → तुरंत स्वीकृति (12-A); ≤300 → मानक योजना (21(4)) या अधिकृत आर्किटेक्ट (6(3)); ≤500 → सक्षमता तालिका (26(9)); बड़ा → पूर्ण प्रक्रिया। ≤500 पर अगस्त-2026 स्थिति पहले जांचें।",
     },
+    "layout": {
+        "en": "Access road by length: up to 150m→7.5m wide; 250m→9.0m; 400m→12.0m; 1000m→18.0m; above→24.0m (Rule 38 Table 3, PDF p.56). Layouts also reserve 10% community open space (Rule 47).",
+        "hi": "पहुंच सड़क लंबाई अनुसार: 150मी तक→7.5मी; 250→9.0; 400→12.0; 1000→18.0; ऊपर→24.0मी (नियम 38 तालिका 3, PDF पृ.56)। ले-आउट में 10% सामुदायिक खुली जगह (नियम 47)।",
+    },
+    "site": {
+        "en": "Site must be ≥9m from a water body / ≥15m from a river (Rule 50(b), PDF p.68); not insanitary, flood-prone or undrained; occupancy must match the Development Plan.",
+        "hi": "स्थल जलाशय से ≥9मी / नदी से ≥15मी दूर हो (नियम 50(b), PDF पृ.68); अस्वास्थ्यकर/बाढ़-प्रवण/बिना-निकास न हो; उपयोग विकास योजना अनुरूप हो।",
+    },
+    "septic": {
+        "en": "Septic tank: ≥18m from drinking water, ≥2m from building; min 75cm wide, 1m deep, 1 cum capacity; effluent never into open drain/water (Rule 79, PDF p.92).",
+        "hi": "सेप्टिक टैंक: पेयजल से ≥18मी, भवन से ≥2मी; न्यूनतम 75सेमी चौड़ा, 1मी गहरा, 1 घन मी; बहिःस्राव खुले नाले/जल में नहीं (नियम 79, PDF पृ.92)।",
+    },
+    "stair": {
+        "en": "Staircase min width: residential 0.85m; hotel/assembly/other 1.5m; educational or institutional tall blocks 2.0m. Tread ≥25cm (30cm non-residential), riser ≤17cm (15cm others), headroom ≥2.2m (Rule 80, PDF p.93).",
+        "hi": "सीढ़ी न्यूनतम चौड़ाई: आवासीय 0.85मी; होटल/सभा/अन्य 1.5मी; ऊंचे शैक्षणिक/संस्थागत 2.0मी। पायदान ≥25सेमी, राइज़र ≤17सेमी, ऊंचाई ≥2.2मी (नियम 80, PDF पृ.93)।",
+    },
     "plot300": {
         "en": "Verdict: under the March-2025 rules, a 300 sq m plot in an approved layout could use an authorised Architect/Structural Engineer (Rule 6(3)) or standard plans (Rule 21(4)) — BUT the 28-08-2026 amendment to Rule 2(5)(c) changed plots up to 500 sq m. Do NOT decide on old rules alone; confirm the August-2026 position with the Authority.",
         "hi": "निर्णय: मार्च-2025 नियमों में 300 वर्ग मीटर प्लॉट हेतु अधिकृत आर्किटेक्ट (नियम 6(3)) या मानक योजना (नियम 21(4)) का रास्ता था — पर 28-08-2026 संशोधन (नियम 2(5)(c), 500 वर्ग मीटर तक) के बाद पुराने नियमों पर निर्णय न लें; प्राधिकारी से अगस्त-2026 स्थिति जांचें।",
@@ -183,6 +199,14 @@ CITIZEN = {
             "hi": "नागरिक से कहें: संचयन स्वीकृति पर जांचा जाता है — योजना में रखें।"},
     "route": {"en": "Tell the citizen: your plot size decides the fastest legal route.",
               "hi": "नागरिक से कहें: आपके प्लॉट का आकार सबसे तेज़ वैध रास्ता तय करता है।"},
+    "layout": {"en": "Tell the citizen: the layout road must be wide enough for its length.",
+               "hi": "नागरिक से कहें: ले-आउट सड़क लंबाई के हिसाब से चौड़ी होनी चाहिए।"},
+    "site": {"en": "Tell the citizen: keep safe distance from lakes and rivers.",
+             "hi": "नागरिक से कहें: तालाब-नदी से सुरक्षित दूरी रखें।"},
+    "septic": {"en": "Tell the citizen: keep the tank far from drinking water.",
+               "hi": "नागरिक से कहें: टंकी पेयजल से दूर रखें।"},
+    "stair": {"en": "Tell the citizen: stairs must be wide enough for safe exit.",
+              "hi": "नागरिक से कहें: सुरक्षित निकास हेतु सीढ़ी पर्याप्त चौड़ी हो।"},
 }
 
 # Follow-up chips per kind: (button label, query to ask).
@@ -210,6 +234,10 @@ FOLLOWUPS = {
     "deadline": [("Validity?", "How long does building permission stay valid?")],
     "route": [("Instant approval?", "Can I get instant approval?"),
               ("Standard plan?", "Can I use a standard plan?")],
+    "layout": [("Development permission?", "Do I need development permission for a layout?")],
+    "site": [("Documents?", "What documents go with an application for building permission?")],
+    "septic": [("Drainage rules?", "What are the drainage and sanitation requirements?")],
+    "stair": [("Lift rule?", "Is a lift needed for a 13 m tall building?")],
     "plantation": [("Occupancy?", "When is occupancy permission issued?")],
 }
 

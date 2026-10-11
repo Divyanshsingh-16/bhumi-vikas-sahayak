@@ -155,8 +155,8 @@ def detect_calculation(query: str):
     if any(k in q for k in ["standard plan", "मानक योजना", "standard building plan"]):
         return {"kind": "standard_plan", "rule": "21"}
     # --- Rule 26(9): handled inside the sign block above (competence table) ---
-    # --- FAR (Rule 61) ---
-    if re.search(r"\bFAR\b|floor area ratio|एफएआर|F\.A\.R", query, re.I):
+    # --- FAR (Rule 61). NOTE: \bFAR\b is case-SENSITIVE ("far" is a common word) ---
+    if re.search(r"\bFAR\b|F\.A\.R|एफएआर", query) or "floor area ratio" in q:
         return {"kind": "far", "rule": "61"}
     # --- side open space (Rule 56(3)) ---
     if "side" in q and any(k in q for k in ["open", "gap", "setback", "बगल"]):
@@ -168,7 +168,8 @@ def detect_calculation(query: str):
     # --- plantation & rainwater (Rules 67, 81); RWH split for exact citation ---
     if any(k in q for k in ["rwh", "rainwater", "rain water", "harvesting", "वर्षा"]):
         return {"kind": "rwh", "rule": "81"}
-    if any(k in q for k in ["plantation", "plant", "tree", "पेड़", "पौध"]):
+    if any(k in q for k in ["plantation", "पेड़", "पौध"]) or \
+            re.search(r"\btree\b|\btrees\b|\bplant\b", q):
         return {"kind": "plantation", "rule": "67"}
     # --- projections & boundary walls (Rules 58, 78); electric handled earlier ---
     if any(k in q for k in ["projection", "cornice", "sunshade", "chhajja", "boundary wall",
@@ -181,6 +182,21 @@ def detect_calculation(query: str):
     # --- route wizard ---
     if any(k in q for k in ["rasta", "kaunsa", "konsa", "which route", "best option", "fastest"]):
         return {"kind": "route", "rule": "12"}
+    # --- layout access roads (Rule 38) ---
+    if any(k in q for k in ["means of access", "access road", "approach road", "colony road",
+                            "colony", "sub-division", "subdivision"]):
+        return {"kind": "layout", "rule": "38"}
+    # --- site near water (Rule 50) ---
+    if any(k in q for k in ["water body", "talab", "river", "lake", "नदी", "तालाब", "flood"]) and \
+            any(k in q for k in ["distance", "buffer", "site", "plot", "build", "construct",
+                                 "दूर", "ban", "allowed"]):
+        return {"kind": "site", "rule": "50"}
+    # --- septic tank (Rule 79) ---
+    if any(k in q for k in ["septic", "soak pit", "सेप्टिक"]):
+        return {"kind": "septic", "rule": "79"}
+    # --- staircase (Rule 80) ---
+    if any(k in q for k in ["staircase", "stairs", "stair", "सीढ़ी"]):
+        return {"kind": "stair", "rule": "80"}
     return None
 
 
@@ -369,3 +385,50 @@ def height_band(height_m: float):
                     "highrise": height_m > 30 or False, "road": road, "plot": plot,
                     "frontage": frontage, "far": far, "front_mos": fmos, "side_mos": smos}
     return None
+
+
+# --- Rule 38(4): means-of-access width by length (residential, PDF p.56) ---
+ACCESS_TABLE = [(150, 7.5), (250, 9.0), (400, 12.0), (1000, 18.0), (float("inf"), 24.0)]
+
+def access_width(length_m: float) -> float:
+    for mx, w in ACCESS_TABLE:
+        if length_m <= mx:
+            return w
+    return 24.0
+
+
+# --- Rule 50(b): water-body buffers (PDF p.68) ---
+def water_buffer_ok(kind: str, distance_m: float):
+    """kind: waterbody (9 m) | river (15 m). Returns (ok, required)."""
+    req = 15.0 if "river" in kind.lower() else 9.0
+    return (distance_m >= req - 1e-9, req)
+
+
+# --- Rule 79: septic tank siting (PDF p.92) ---
+def septic_ok(dist_water_m=None, dist_building_m=None):
+    probs = []
+    if dist_water_m is not None and dist_water_m < 18 - 1e-9:
+        probs.append(f"drinking-water source {dist_water_m}m < 18 m")
+    if dist_building_m is not None and dist_building_m < 2 - 1e-9:
+        probs.append(f"building {dist_building_m}m < 2 m")
+    return (not probs, "water source >=18 m; building >=2 m; min 75cm wide, 1m deep, 1 cum",
+            "; ".join(probs))
+
+
+# --- Rule 80: staircase widths (PDF p.93) ---
+STAIR_TABLE = {
+    "residential": 0.85, "hotel": 1.5, "assembly": 1.5,
+    "educational_low": 1.5, "educational_high": 2.0,
+    "institutional_low": 1.5, "institutional_high": 2.0, "other": 1.5,
+}
+
+def stair_width(building: str = "residential", tall: bool = False) -> float:
+    b = building.lower()
+    if "education" in b or "school" in b or "college" in b:
+        return 2.0 if tall else 1.5
+    if "hospital" in b or "institution" in b:
+        return 2.0 if tall else 1.5
+    return STAIR_TABLE.get("residential" if "resi" in b or "house" in b or "home" in b else
+                           "hotel" if "hotel" in b else
+                           "assembly" if any(k in b for k in ("cinema", "theatre", "assembly", "mall")) else "other",
+                           1.5)

@@ -52,6 +52,11 @@ HI_MAP = {
     "छज्जा": "sunshade projection",
     "बालकनी": "balcony projection",
     "ऊंची": "tall high-rise height",
+    "सीढ़ी": "staircase stairs width",
+    "तालाब": "water body lake distance",
+    "नदी": "river distance",
+    "सेप्टिक": "septic tank",
+    "कॉलोनी": "colony layout subdivision",
     "वोल्टेज": "voltage electric",
     "हाई": "high",
     "लाइन": "line",
@@ -89,15 +94,19 @@ BOOSTS = [
     (("standard plan", "मानक योजना"), "21", 0.30),
     (("competent", "competence", "supervisor", "कौन"), "26", 0.30),    (("occupancy", "completion certificate", "अधिभोग"), "31", 0.30),
     (("inspect", "निरीक्षण", "plinth"), "33", 0.25),
-    (("FAR", "floor area ratio", "एफएआर"), "61", 0.35),
+    (("floor area ratio", "एफएआर", "F.A.R"), "61", 0.35),
     (("side open", "side setback", "बगल"), "56", 0.25),
     (("kitchen", "bedroom", "bathroom", "रसोई"), "69", 0.35),
-    (("plantation", "rainwater", "tree", "पेड़"), "67", 0.30),
+    (("plantation", "rainwater", "पेड़"), "67", 0.30),
     (("rainwater", "harvesting", "rwh"), "81", 0.35),
     (("projection", "cornice", "sunshade", "boundary wall"), "58", 0.30),
     (("high-rise", "high rise", "tall building"), "42", 0.30),
     (("timeline", "kitne din", "kab tak"), "23", 0.25),
     (("rasta", "kaunsa", "konsa"), "12", 0.25),
+    (("means of access", "access road", "colony", "sub-division"), "38", 0.30),
+    (("water body", "talab", "river", "lake", "नदी", "flood"), "50", 0.30),
+    (("septic", "soak pit", "सेप्टिक"), "79", 0.35),
+    (("staircase", "stairs", "stair", "सीढ़ी"), "80", 0.35),
     (("building line", ), "2", 0.35),
     (("hectare", "convert"), "21", 0.25),
     (("development plan", "precedence", "disagree", "conflict", "contradict", "prevail", "wins"), "103", 0.30),
@@ -193,6 +202,16 @@ class RuleRetriever:
             for i, c in enumerate(self.chunks):
                 if c["rule"] == "28":
                     sims[i] += 0.30
+        # FAR acronym, case-sensitive ("far" is a common English word)
+        if re.search(r"\bFAR\b|F\.A\.R", query) or "floor area ratio" in ql:
+            for i, c in enumerate(self.chunks):
+                if c["rule"] == "61":
+                    sims[i] += 0.35
+        # tree, whole word only ("tree" hides inside "street")
+        if re.search(r"\btree\b|\btrees\b", ql):
+            for i, c in enumerate(self.chunks):
+                if c["rule"] == "67":
+                    sims[i] += 0.30
         # aggregate chunks -> parent rule (keep best chunk for quote/subref)
         best = {}
         for i, s in enumerate(sims):
@@ -246,6 +265,12 @@ class RuleRetriever:
             # definitional FAR question -> rule head (names Table 8) beats note-clauses
             if ("far" in ql or "floor area ratio" in ql) and self.chunks[i].get("subref") in ("61.", "(head)"):
                 bonus += 0.45
+            if any(k in ql for k in ("septic", "सेप्टिक")) and ("18 meter" in ctxt or "septic" in ctxt.lower()):
+                bonus += 0.40
+            if "stair" in ql and "staircase" in ctxt.lower():
+                bonus += 0.40
+            if "means of access" in ql and ("means of access" in ctxt.lower() or "TABLE 3" in ctxt):
+                bonus += 0.35
             scored.append((0.7 * float(cos[j]) + 0.05 * overlap + bonus, i))
         scored.sort(reverse=True)
         return self.chunks[scored[0][1]]

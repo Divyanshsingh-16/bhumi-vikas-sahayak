@@ -69,6 +69,12 @@ EXTRA = [
     ("N73", "Bathroom minimum size?", "69"),
     ("N74", "Is rainwater harvesting compulsory?", "81"),
     ("N75", "रसोई का न्यूनतम आकार?", "69"),
+    # source-grounded round 5 (Rules 38, 50, 79, 80)
+    ("N76", "How wide must the access road be for a 300m long colony street?", "38"),
+    ("N77", "How far should construction be from a lake?", "50"),
+    ("N78", "Septic tank distance from drinking water?", "79"),
+    ("N79", "Minimum staircase width for a house?", "80"),
+    ("N80", "सीढ़ी कितनी चौड़ी हो?", "80"),
 ]
 
 def main():

@@ -189,6 +189,15 @@ with tab_case:
                 + "\n".join(f"  {g}" for g in green) + "\n"
                 f"Source: {VERSION_STRING}. Clerk decides; not legal advice.")
         st.download_button("🧾 Download case slip", slip, file_name="case_slip.txt")
+        from slip import case_report_pdf_bytes
+        from dates import permission_timeline
+        _case = {"area": area, "road": road, "built": built, "use": use, "front": f,
+                 "rear": (r if r else "Nil"), "fee": total, "rows": rows, "green": green,
+                 "timeline": permission_timeline(__import__("datetime").date.today())}
+        _pdf = case_report_pdf_bytes(_case)
+        if _pdf:
+            st.download_button("📕 Full case report (PDF)", _pdf, file_name="case_report.pdf",
+                               mime="application/pdf")
         cname = st.text_input("Save this case as (name)", key="casename")
         if st.button("💾 Save case", key="savecase") and cname:
             import csv as _csv
@@ -304,6 +313,16 @@ with tab_chat:
         st.session_state.history = []
     if "votes" not in st.session_state:
         st.session_state.votes = {}
+    citizen = st.toggle("👁️ Citizen view (big result only)", value=False)
+
+    if citizen and st.session_state.history:
+        q, res = st.session_state.history[-1]
+        st.markdown("<style>.bigans{font-size:1.6rem;line-height:1.5}</style>", unsafe_allow_html=True)
+        st.markdown(f'<div class="answer-card bigans">{res["answer"].split(chr(10))[0]}</div>',
+                    unsafe_allow_html=True)
+        if res.get("rule"):
+            st.markdown(f'<span class="rule-chip">📜 Rule {res["rule"]}</span>', unsafe_allow_html=True)
+        st.divider()
 
     if not st.session_state.history:
         st.markdown(f'<span class="stat-chip">👉 {t("steps", UL)}</span>', unsafe_allow_html=True)
