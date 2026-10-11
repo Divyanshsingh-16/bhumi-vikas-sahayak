@@ -1,0 +1,10 @@
+.env
+.agents/
+__pycache__/
+.venv/
+*.pyc
+.streamlit/
+eval/results.csv
+eval/results_v2.csv
+eval/counter_log.csv
+pdf_pages/
