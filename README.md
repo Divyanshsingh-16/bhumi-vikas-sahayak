@@ -1,7 +1,7 @@
 # Bhumi Vikas Sahayak
 
 Track: 1 Bhumi Vikas Sahayak
-Team: [your names here]
+Team: 1 Org
 
 ## The user
 A building-permission clerk at Bhopal Municipal Corporation answering a citizen at the counter in under a minute.
