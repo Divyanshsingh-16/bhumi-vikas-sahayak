@@ -1,27 +1,50 @@
-"""Bhumi Vikas Sahayak — kiosk-ready chat for BMC counter. Offline-first, LLM optional."""
+"""Bhumi Vikas Sahayak — counter tool for BMC building permissions. Offline-first, LLM optional."""
 import csv
-from datetime import datetime
+import math
+import urllib.parse as urlparse
+from datetime import datetime, date
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from pipeline import pipeline
 from patch_2026 import (VERSION_STRING, PATCH_NOTE_EN, PATCH_NOTE_HI,
-                        DISCLAIMER_EN, DISCLAIMER_HI)
+                        DISCLAIMER_EN, DISCLAIMER_HI, AMEND_QUOTE_EN, AMEND_QUOTE_HI, AMEND_REF)
 from llm import is_hindi
 from visual import plot_svg
-from slip import slip_text, slip_pdf_bytes
+from slip import slip_text, slip_pdf_bytes, case_report_pdf_bytes
 from voice import mic_box, speak_button
-from calculators import front_open_space, rear_open_space, building_fee, fee_breakdown
+from voice_loop import guided_voice_bot, say_on_render, hear_once
+from avatar import show_avatar
+from bot import bot_reply, QUICK_PLOTS
+from building3d import building_3d_html, BHOPAL_MAP_IFRAME
+from violation import check_proposal, verdict
+from calculators import (front_open_space, rear_open_space, fee_breakdown,
+                         plantation_needed, rwh_needed)
 from amendment_forms import AMENDMENT, FORMS, route_form
+from dates import permission_timeline, occupancy_deadline
+from faq import FAQ
 from i18n import t
 from journey import journey_html, STEPS
-import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Bhumi Vikas Sahayak", page_icon="🏠", layout="wide")
 
 LOG_PATH = Path(__file__).parent / "eval" / "counter_log.csv"
+VOTES_PATH = Path(__file__).parent / "eval" / "votes.csv"
 CONF_ICON = {"high": "🟢", "medium": "🟡", "low": "🔴"}
+
+
+def save_vote(idx, query, vote):
+    try:
+        new = not VOTES_PATH.exists()
+        with open(VOTES_PATH, "a", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            if new:
+                w.writerow(["time", "idx", "query", "vote"])
+            w.writerow([datetime.now().isoformat(timespec="seconds"), idx, query[:200], vote])
+    except OSError:
+        pass
 
 st.markdown("""
 <style>
@@ -46,6 +69,7 @@ with st.sidebar:
     auto_say = st.toggle("🔊 Jawab bolkar sunao (auto-speak)", value=False)
     show_evidence = st.toggle("Show PDF evidence", value=True)
     show_diagram = st.toggle("Show plot diagram", value=True)
+    dev_mode = st.toggle("🛠️ Developer details", value=False)
     st.divider()
     st.subheader("🎤 Voice input (Hindi + English)")
     mic_box()
@@ -63,7 +87,7 @@ st.title("🏠 Bhumi Vikas Sahayak" if UL == "en" else "🏠 भूमि वि
 st.caption(t("tagline", UL))
 c1, c2, c3 = st.columns(3)
 c1.markdown('<span class="stat-chip">📜 106 rules</span>', unsafe_allow_html=True)
-c2.markdown('<span class="stat-chip">🎯 53/53 answers traced</span>', unsafe_allow_html=True)
+c2.markdown('<span class="stat-chip">🎯 84/84 answers traced</span>', unsafe_allow_html=True)
 c3.markdown('<span class="stat-chip">🗣️ EN + हिंदी + 🎤</span>', unsafe_allow_html=True)
 st.info(f"📖 Source: {VERSION_STRING}\n\n⚠️ {PATCH_NOTE_EN if UL=='en' else PATCH_NOTE_HI}")
 
@@ -73,13 +97,10 @@ tab_chat, tab_bot, tab_3d, tab_case, tab_forms, tab_eval = st.tabs(
 with tab_bot:
     st.subheader("🤖 Sahayak — guided, no typing needed")
     st.caption("Tap quick replies or type numbers. Speaks Hindi + English.")
-    from avatar import show_avatar
     show_avatar(state="idle", label="सहायक", key="botav")
     with st.expander("🎙️ Person-like voice Sahayak (hands-free — bolo, jawab suno)", expanded=False):
         st.caption("Start dabao → Hindi/English me bolo → Sahayak bolkar jawab dega → mic khud wapas sunega. Mic ke liye internet chahiye; text hamesha saath hai.")
-        from voice_loop import guided_voice_bot
         guided_voice_bot()
-    from bot import bot_reply, QUICK_PLOTS
     if "bot_state" not in st.session_state:
         st.session_state.bot_state = {"step": "greet", "lang": "en"}
         st.session_state.bot_hist = []
@@ -102,9 +123,7 @@ with tab_bot:
         st.session_state.bot_hist.append(("user", bq))
         rep, st.session_state.bot_state, done = bot_reply(dict(st.session_state.bot_state), bq)
         st.session_state.bot_hist.append(("bot", rep))
-        from voice_loop import say_on_render
-        from llm import is_hindi as _ish
-        say_on_render(rep, "hi" if _ish(bq + rep) else "en",
+        say_on_render(rep, "hi" if is_hindi(bq + rep) else "en",
                       auto=st.session_state.get("bot_autosay", False))
         if done:
             st.session_state.bot_state = {"step": "greet", "lang": st.session_state.bot_state.get("lang", "en")}
@@ -113,9 +132,6 @@ with tab_bot:
 
 with tab_3d:
     st.subheader("🏙️ 3D plot + building (drag to rotate)")
-    from building3d import building_3d_html, BHOPAL_MAP_IFRAME
-    from violation import check_proposal, verdict
-    import streamlit.components.v1 as components
     v1, v2, v3 = st.columns(3)
     v_road = v1.number_input("Road width (m)", 0.0, 60.0, 9.0, 0.5, key="v3road")
     v_plot = v2.number_input("Plot area (sqm)", 0.0, 100000.0, 200.0, 1.0, key="v3plot")
@@ -124,7 +140,6 @@ with tab_3d:
     v_front = v4.number_input("Proposed front gap (m)", 0.0, 30.0, 3.0, 0.1, key="v3f")
     v_rear = v5.number_input("Proposed rear gap (m)", 0.0, 30.0, 1.5, 0.1, key="v3r")
     v_floors = v6.number_input("Floors", 1, 30, 3, 1, key="v3fl")
-    from calculators import front_open_space, rear_open_space
     req_f, req_r = front_open_space(v_road), rear_open_space(v_plot)
     checks = check_proposal(plot_sqm=v_plot, road_m=v_road, front_m=v_front, rear_m=v_rear,
                             height_m=v_height, floors=v_floors)
@@ -138,7 +153,6 @@ with tab_3d:
     for c in checks:
         icon = "✅" if c["ok"] else ("❌" if c["ok"] is False else "ℹ️")
         st.write(f"{icon} {c['item']}: proposed **{c['proposed']}** vs required **{c['required']}** (Rule {c['rule']})")
-    import math
     pw = math.sqrt(v_plot * 0.6) or 10
     pd = (v_plot / pw) if pw else 20
     components.html(building_3d_html(plot_w=round(pw, 1), plot_d=round(pd, 1),
@@ -167,7 +181,6 @@ with tab_case:
         rows, total = fee_breakdown(built, use=("commercial" if use.startswith("shop/") else use),
                                     highrise=highrise)
         st.success(f"Front: {f} m (R56) · Rear: {r if r else 'Nil'} m (R56) · Total fee: Rs {total} (R21)")
-        from calculators import plantation_needed, rwh_needed
         trees, rwh = plantation_needed(area), rwh_needed(area)
         green = []
         if trees:
@@ -189,22 +202,19 @@ with tab_case:
                 + "\n".join(f"  {g}" for g in green) + "\n"
                 f"Source: {VERSION_STRING}. Clerk decides; not legal advice.")
         st.download_button("🧾 Download case slip", slip, file_name="case_slip.txt")
-        from slip import case_report_pdf_bytes
-        from dates import permission_timeline
         _case = {"area": area, "road": road, "built": built, "use": use, "front": f,
                  "rear": (r if r else "Nil"), "fee": total, "rows": rows, "green": green,
-                 "timeline": permission_timeline(__import__("datetime").date.today())}
+                 "timeline": permission_timeline(date.today())}
         _pdf = case_report_pdf_bytes(_case)
         if _pdf:
             st.download_button("📕 Full case report (PDF)", _pdf, file_name="case_report.pdf",
                                mime="application/pdf")
         cname = st.text_input("Save this case as (name)", key="casename")
         if st.button("💾 Save case", key="savecase") and cname:
-            import csv as _csv
             cp = Path(__file__).parent / "eval" / "cases.csv"
             new = not cp.exists()
             with open(cp, "a", newline="", encoding="utf-8") as cf:
-                w = _csv.writer(cf)
+                w = csv.writer(cf)
                 if new:
                     w.writerow(["name", "time", "road", "area", "built", "use", "highrise",
                                 "front", "rear", "fee"])
@@ -212,9 +222,8 @@ with tab_case:
                             built, use, highrise, f, r if r else "Nil", total])
             st.success(f"Saved '{cname}'")
     with st.expander("📂 Saved cases" if UL == "en" else "📂 सहेजे केस"):
-        import csv as _csv2
         try:
-            saved = list(_csv2.DictReader(open(Path(__file__).parent / "eval" / "cases.csv")))
+            saved = list(csv.DictReader(open(Path(__file__).parent / "eval" / "cases.csv")))
             for s in saved[-10:]:
                 st.write(f"**{s['name']}** — road {s['road']}m, plot {s['area']}sqm, "
                          f"front {s['front']}m, rear {s['rear']}m, fee Rs {s['fee']}")
@@ -225,7 +234,6 @@ with tab_forms:
     st.subheader("28-08-2026 Gazette — Rule 2(5)(c), plots ≤500 sq m")
     st.warning(AMENDMENT["en"])
     st.write(AMENDMENT["hi"])
-    from patch_2026 import AMEND_QUOTE_EN, AMEND_QUOTE_HI, AMEND_REF
     st.caption(f"Source: {AMEND_REF} (copy in repo resources/). "
                "Status: DRAFT for 15-day objections — confirm final position with the Authority.")
     with st.expander("📜 Exact gazette text (English)"):
@@ -239,8 +247,7 @@ with tab_forms:
                 st.image(str(_p))
     st.divider()
     st.subheader("🗺️ Application journey (click a step)" if UL == "en" else "🗺️ आवेदन यात्रा")
-    import streamlit.components.v1 as _comp
-    _comp.html(journey_html(lang=UL, done=int(st.session_state.get("jstep", 0))), height=110)
+    components.html(journey_html(lang=UL, done=int(st.session_state.get("jstep", 0))), height=110)
     jc = st.columns(5)
     for i, s in enumerate(STEPS):
         if jc[i].button(f"{i+1}. {s['hi' if UL=='hi' else 'en'][:22]}…", key=f"j{i}"):
@@ -264,9 +271,7 @@ with tab_forms:
             st.caption("Ask in chat for guidance.")
     st.divider()
     st.subheader("📅 Deadline calculator" if UL == "en" else "📅 समय-सीमा गणक")
-    from dates import permission_timeline, occupancy_deadline
-    import datetime as _dt
-    applied = st.date_input("Application date", value=_dt.date(2026, 1, 10), key="appdate")
+    applied = st.date_input("Application date", value=date(2026, 1, 10), key="appdate")
     if st.button("Show dates", key="dates"):
         tl = permission_timeline(applied)
         st.write(f"Valid until: **{tl['valid_until']}** (3 yrs) · Renewals: **{tl['renewal_1_until']}**, **{tl['renewal_2_until']}** (Rule 23)")
@@ -277,13 +282,12 @@ with tab_eval:
     st.subheader("How often is it right?")
     st.write("Offline retrieval scores (re-run with `python3 eval/run_v2.py`):")
     try:
-        import csv as _csv
-        rows = list(_csv.DictReader(open(Path(__file__).parent / "eval" / "results_v2.csv")))
+        rows = list(csv.DictReader(open(Path(__file__).parent / "eval" / "results_v2.csv")))
         top3 = sum(1 for r in rows if r["ok_top3"] == "True")
         st.metric("Top-3 rule accuracy", f"{top3}/{len(rows)}")
         # officer analytics from counter log
         try:
-            log = list(_csv.DictReader(open(LOG_PATH)))
+            log = list(csv.DictReader(open(LOG_PATH)))
             from collections import Counter
             st.metric("Counter queries logged", len(log))
             if log:
@@ -303,7 +307,7 @@ with tab_eval:
             else:
                 st.caption("No 👎 yet — good sign.")
         try:
-            chlog = list(_csv.DictReader(open(LOG_PATH)))
+            chlog = list(csv.DictReader(open(LOG_PATH)))
             if chlog:
                 from collections import Counter as _C2
                 st.bar_chart(dict(_C2(r["rule"] for r in chlog if r["rule"]).most_common(10)))
@@ -311,16 +315,25 @@ with tab_eval:
             pass
         with st.expander("📰 Daily digest" if UL == "en" else "📰 दैनिक सार"):
             try:
-                log = list(_csv.DictReader(open(LOG_PATH)))
+                log = list(csv.DictReader(open(LOG_PATH)))
+            except FileNotFoundError:
+                log = []
+            try:
+                all_votes = list(csv.DictReader(open(VOTES_PATH)))
+            except FileNotFoundError:
+                all_votes = []
+            if log or all_votes:
                 from collections import Counter as _C
                 counts = _C(r["rule"] for r in log if r["rule"])
                 nf = sum(1 for r in log if not r["rule"])
+                ups = sum(1 for r in all_votes if r["vote"] == "up")
+                dns = sum(1 for r in all_votes if r["vote"] == "down")
                 dg = (f"BHUMI SAHAYAK — daily digest {datetime.now():%d-%m-%Y}\n"
-                      f"Queries: {len(log)} | Not-found: {nf} | Votes: {st.session_state.get('votes', {})}\n"
+                      f"Queries: {len(log)} | Not-found: {nf} | Votes: {ups} up / {dns} down\n"
                       f"Top rules: {dict(counts.most_common(5))}\nClerk decides; not legal advice.")
                 st.text(dg)
                 st.download_button("⬇️ Download digest", dg, file_name="digest.txt")
-            except FileNotFoundError:
+            else:
                 st.caption("No counter log yet.")
     except FileNotFoundError:
         st.caption("Run `python3 eval/run_v2.py` to generate scores.")
@@ -374,7 +387,6 @@ with tab_chat:
         st.session_state["mic_wait"] = True
         st.rerun()
     if st.session_state.pop("mic_wait", False):
-        from voice_loop import hear_once
         with st.spinner("🎤 Sun rahe hain… bolo" if UL == "hi" else "🎤 Listening… speak"):
             heard = hear_once("hi-IN" if UL == "hi" else "en-IN", key=f"hear{st.session_state.get('mic_n', 0)}")
         if heard and not heard.startswith("__"):
@@ -385,7 +397,6 @@ with tab_chat:
                        else "Mic failed (needs Chrome + internet) — please type.")
 
     with st.expander("⚡ Instant answers (no waiting)" if UL == "en" else "⚡ तुरंत उत्तर"):
-        from faq import FAQ
         fq_cols = st.columns(2)
         for i, (keys, (rule, pages, a_en, a_hi)) in enumerate(FAQ):
             ans = a_en if UL == "en" else a_hi
@@ -491,16 +502,19 @@ with tab_chat:
                                        key=f"pdf{idx}", mime="application/pdf")
                 st.download_button(t("slip_txt", UL), slip_text(q, res), file_name=f"slip_{idx+1}.txt", key=f"txt{idx}")
                 import urllib.parse as _up
-                wa = "https://wa.me/?text=" + _up.quote(f"Bhumi Vikas Sahayak — Rule {res['rule']}\n" + res["answer"][:800])
+                wa = "https://wa.me/?text=" + urlparse.quote(f"Bhumi Vikas Sahayak — Rule {res['rule']}\n" + res["answer"][:800])
                 st.link_button("📲 WhatsApp par bhejo", wa)
             st.caption(DISCLAIMER_HI if hi else DISCLAIMER_EN)
             c1, c2 = st.columns(2)
             if c1.button("👍", key=f"up{idx}"):
                 st.session_state.votes[idx] = "up"
+                save_vote(idx, q, "up")
             if c2.button("👎", key=f"dn{idx}"):
                 st.session_state.votes[idx] = "down"
-            st.caption(f"mode: {res['mode']}" + (f" · score: {res.get('score',0):.2f}" if res.get("score") else "")
-                       + (f" · vote: {st.session_state.votes.get(idx)}" if idx in st.session_state.votes else ""))
+                save_vote(idx, q, "down")
+            if dev_mode:
+                st.caption(f"mode: {res['mode']}" + (f" · score: {res.get('score',0):.2f}" if res.get("score") else "")
+                           + (f" · vote: {st.session_state.votes.get(idx)}" if idx in st.session_state.votes else ""))
 
     st.divider()
     st.caption(t("examples", UL))
@@ -508,3 +522,10 @@ with tab_chat:
         if st.button(ex, key=ex[:24]):
             st.session_state.pending = ex
             st.rerun()
+
+st.divider()
+st.caption(
+    f"🏠 {'Bhumi Vikas Sahayak' if UL == 'en' else 'भूमि विकास सहायक'} · "
+    f"{'Rules upto 06-03-2025 + Rajpatra 28-08-2026' if UL == 'en' else 'नियम 06-03-2025 तक + राजपत्र 28-08-2026'} · "
+    f"{DISCLAIMER_EN if UL == 'en' else DISCLAIMER_HI}"
+)

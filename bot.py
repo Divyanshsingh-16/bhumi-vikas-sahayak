@@ -38,7 +38,7 @@ def bot_reply(state: dict, message: str | None) -> tuple[str, dict, bool]:
             state["step"] = "road"
             q = "✅ {p} sq m. {t}".format(p=num, t="सड़क कितनी चौड़ी है (मीटर में)?" if hi else "How wide is the road in front (in meters)?")
             return q, state, False
-        return ("❓ " + ("Plot area (sq m) batayein, jaise 200।" if hi else "Tell me the plot area in sq m, e.g. 200.")), state, False
+        return ("❓ " + ("प्लॉट का क्षेत्रफल (वर्ग मीटर) बताएं, जैसे 200।" if hi else "Tell me the plot area in sq m, e.g. 200.")), state, False
 
     if step == "road":
         if num and 1 <= num <= 60:
@@ -46,14 +46,14 @@ def bot_reply(state: dict, message: str | None) -> tuple[str, dict, bool]:
             state["step"] = "height"
             q = "✅ {r} m. {t}".format(r=num, t="इमारत कितनी ऊंची होगी (मीटर)?" if hi else "How tall will the building be (in meters)?")
             return q, state, False
-        return ("❓ " + ("सड़क की चौड़ाई मीटर में batayein।" if hi else "Tell me the road width in meters.")), state, False
+        return ("❓ " + ("सड़क की चौड़ाई मीटर में बताएं।" if hi else "Tell me the road width in meters.")), state, False
 
     if step == "height":
         if num and 1 <= num <= 100:
             state["height"] = num
             state["step"] = "use"
             return ("✅ {h} m. {t}".format(h=num, t="उपयोग क्या है — आवासीय या दुकान/वाणिज्यिक?" if hi else "What is the use — residential or shop/commercial?")), state, False
-        return ("❓ " + ("ऊंचाई मीटर में batayein।" if hi else "Tell me the height in meters.")), state, False
+        return ("❓ " + ("ऊंचाई मीटर में बताएं।" if hi else "Tell me the height in meters.")), state, False
 
     if step == "use":
         use = "residential"

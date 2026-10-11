@@ -16,7 +16,7 @@ GUIDED_HTML = """
 <div style="font-family:sans-serif;text-align:center">
 <div id="g_av" style="display:inline-block;border-radius:50%;border:4px solid #BDBDBD;padding:6px;background:#FFF8E1">FACE_SVG</div>
 <div style="font-weight:700;margin-top:4px">🤖 सहायक / Sahayak</div>
-<div id="g_status" style="font-size:13px;color:#555;min-height:20px">taiyaar — Start dabao, bolo</div>
+<div id="g_status" style="font-size:13px;color:#555;min-height:20px">तैयार — Start dabao, bolo</div>
 <div>
 <button id="g_lang" style="font-size:13px;padding:6px 10px;margin:4px">🌐 हिंदी</button>
 <button id="g_start" style="font-size:16px;padding:10px 18px;background:#1B5E20;color:white;border:none;border-radius:10px">🎤 Baat shuru karo</button>
@@ -39,7 +39,7 @@ function setAv(mode){
   window.speaking = (mode==='speak');
 }
 function say(text, next){
-  setAv('speak'); $('g_status').innerText = (lang==='hi'?'🔊 bol raha hai…':'🔊 speaking…');
+  setAv('speak'); $('g_status').innerText = (lang==='hi'?'🔊 बोल रहा है…':'🔊 speaking…');
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
@@ -54,12 +54,12 @@ function log(who, txt){
   d.innerHTML += `<p><b>${who}:</b> ${txt}</p>`; d.scrollTop = d.scrollHeight;
 }
 const P = {
-  hi: { plot:'Namaste! Main Sahayak hu. Aapka plot kitne verg meter ka hai? Jaise: do sau.',
-        road:'Samajh gaya. Saamne sadak kitni chaudi hai, meter me? Jaise: nau.',
-        height:'Theek hai. Imaarat kitni unchi hogi, meter me?',
-        use:'Aavaasiy hai ya dukaan? Aavaasiy kaho ya dukaan.',
-        done:(p,r,f,v,h)=>`Aapka hisaab: saamne ${f} meter, peeche ${v} meter. Niyam chhappan. Oonchaai ${h} meter. Dhanyavaad!`,
-        bye:'Dhanyavaad! Phir milenge.' },
+  hi: { plot:'नमस्ते! मैं सहायक हूं। आपका प्लॉट कितने वर्ग मीटर का है? जैसे: दो सौ।',
+        road:'समझ गया। सामने सड़क कितनी चौड़ी है, मीटर में? जैसे: नौ।',
+        height:'ठीक है। इमारत कितनी ऊंची होगी, मीटर में?',
+        use:'आवासीय है या दुकान? आवासीय कहो या दुकान।',
+        done:(p,r,f,v,h)=>`आपका हिसाब: सामने ${f} मीटर, पीछे ${v} मीटर। नियम छप्पन। ऊंचाई ${h} मीटर। धन्यवाद!`,
+        bye:'धन्यवाद! फिर मिलेंगे।' },
   en: { plot:'Hello! I am Sahayak. How big is your plot, in square meters? For example: two hundred.',
         road:'Got it. How wide is the road in front, in meters?',
         height:'Okay. How tall will the building be, in meters?',
@@ -82,14 +82,14 @@ function handle(txt){
     const comm = /shop|commercial|dukaan|दुकान|vyapaar/i.test(txt);
     const t=P[lang].done(D.plot,D.road,front(D.road),rear(D.plot),D.h);
     log('🤖',t); step='idle'; say(t, ()=>{ running=false; setAv('idle');
-      $('g_status').innerText = (lang==='hi'?'Ho gaya! Dobara? Start dabao.':'Done! Again? Press Start.'); });
+      $('g_status').innerText = (lang==='hi'?'हो गया! दोबारा? Start दबाओ।':'Done! Again? Press Start.'); });
   }
   else { const t = P[lang][step] || P[lang].plot; log('🤖',t); say(t, listen); }
 }
 function listen(){
   if(!running) return;
   if(!SR){ $('g_status').innerText='Mic not supported — use Chrome.'; running=false; return; }
-  setAv('listen'); $('g_status').innerText=(lang==='hi'?'🎤 sun raha hu… bolo':'🎤 listening… speak');
+  setAv('listen'); $('g_status').innerText=(lang==='hi'?'🎤 सुन रहा हूं… बोलो':'🎤 listening… speak');
   try{
     rec = new SR(); rec.lang = (lang==='hi'?'hi-IN':'en-IN'); rec.interimResults=false;
     rec.onresult = e => handle(e.results[0][0].transcript);
