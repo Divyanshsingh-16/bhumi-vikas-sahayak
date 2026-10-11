@@ -157,6 +157,25 @@ with tab_3d:
     for c in checks:
         icon = "✅" if c["ok"] else ("❌" if c["ok"] is False else "ℹ️")
         st.write(f"{icon} {c['item']}: proposed **{c['proposed']}** vs required **{c['required']}** (Rule {c['rule']})")
+    with st.expander("🧱 Component check — 18 rule parts (balcony, stairs, walls…)" if UL == "en" else "🧱 घटक जांच"):
+        from catalog import COMPONENTS
+        _prop = {"height_m": v_height, "balcony_m": 1.2, "chhajja_m": 0.75,
+                 "parapet_m": 1.05, "wall_front_m": 1.5,
+                 "stair_w": 0.85, "use": "residential"}
+        _picked = st.multiselect("Components", [c["id"] for c in COMPONENTS],
+                                 default=["balcony", "parapet", "staircase", "lift",
+                                          "boundary_wall", "trees", "rainwater_harvesting",
+                                          "electric_line"],
+                                 key="compick")
+        for comp in COMPONENTS:
+            if comp["id"] not in _picked:
+                continue
+            try:
+                ok, note = comp["check"](_prop)
+            except Exception:
+                ok, note = None, comp["en"]
+            icon = "✅" if ok else ("❌" if ok is False else "ℹ️")
+            st.write(f"{icon} **{comp['id']}** (Rule {comp['rule']}, p.{comp['page']}): {note}")
     pw = math.sqrt(v_plot * 0.6) or 10
     pd = (v_plot / pw) if pw else 20
     components.html(building_3d_html(plot_w=round(pw, 1), plot_d=round(pd, 1),

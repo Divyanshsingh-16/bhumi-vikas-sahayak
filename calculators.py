@@ -393,6 +393,20 @@ def check_projection(kind: str, value: float):
     return (value <= lim + 1e-9, lim, note)
 
 
+# --- Rule 57: open spaces for non-residential uses (PDF p.80) ---
+def envelope_57(use: str = "educational", height_m: float = 10.0):
+    """Return (front, others) minimum open spaces in meters."""
+    u = use.lower()
+    if "assembly" in u or "cinema" in u or "theatre" in u or "multiplex" in u:
+        return (12.0, 6.0)
+    if "business" in u or "mercantile" in u or "shop" in u or "commercial" in u or "storage" in u:
+        return (6.0, 4.5)
+    if "industrial" in u or "hazard" in u or "factory" in u:
+        extra = max(0.0, height_m - 16) * 0.25
+        return (4.5 + extra, 4.5 + extra)
+    return (6.0, 6.0)  # educational, institutional, default
+
+
 # --- Rule 42 Tables 4-5: height bands (PDF p.58-60) ---
 MID_BANDS = [  # (max_height, road, plot, frontage, far, front_mos, side_mos)
     (18, 12.0, 1000, 18, 1.50, 7.5, 6.0),
